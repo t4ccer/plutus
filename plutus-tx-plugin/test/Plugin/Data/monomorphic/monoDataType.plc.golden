@@ -18,15 +18,19 @@
         [
           [
             { [ MyMonoData_match ds ] (con integer) }
-            (lam
-              default_arg0
-              (con integer)
-              (lam default_arg1 (con integer) (con integer 1))
-            )
+            (lam p (prod (con integer) (con integer)) (con integer 1))
           ]
-          (lam i (con integer) i)
+          (lam
+            p
+            (prod (con integer))
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl i (con integer)) (proj 0 p))
+              i
+            )
+          )
         ]
-        (lam default_arg0 (con integer) (con integer 1))
+        (lam p (prod (con integer)) (con integer 1))
       ]
     )
   )

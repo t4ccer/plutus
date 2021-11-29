@@ -12,7 +12,18 @@
     (lam
       ds
       RecordNewtype
-      [ { [ RecordNewtype_match ds ] (con integer) } (lam ds (con integer) ds) ]
+      [
+        { [ RecordNewtype_match ds ] (con integer) }
+        (lam
+          p
+          (prod (con integer))
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl ds (con integer)) (proj 0 p))
+            ds
+          )
+        )
+      ]
     )
   )
 )

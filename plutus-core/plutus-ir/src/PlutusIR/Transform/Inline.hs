@@ -424,6 +424,8 @@ costIsAcceptable = \case
   Apply{}    -> False
   TyInst{}   -> False
   Let{}      -> False
+  Prod{}    -> False
+  Proj{}   -> False
 
 -- | Is the size increase (in the AST) of inlining a variable whose RHS is
 -- the given term acceptable?
@@ -445,6 +447,8 @@ sizeIsAcceptable = \case
   Apply{}        -> False
   TyInst{}       -> False
   Let{}          -> False
+  Prod{}         -> False
+  Proj{}         -> False
 
 -- | Is this a an utterly trivial type which might as well be inlined?
 trivialType :: Type tyname uni a -> Bool

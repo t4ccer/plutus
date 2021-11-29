@@ -31,16 +31,21 @@
             (lam
               k
               (fun a [ Maybe b ])
-              {
+              [
                 [
-                  [
-                    { [ { Maybe_match a } ds ] (all dead (type) [ Maybe b ]) }
-                    (lam x a (abs dead (type) [ k x ]))
-                  ]
-                  (abs dead (type) { Nothing b })
+                  { [ { Maybe_match a } ds ] [ Maybe b ] }
+                  (lam
+                    p
+                    (prod a)
+                    (let
+                      (nonrec)
+                      (termbind (strict) (vardecl x a) (proj 0 p))
+                      [ k x ]
+                    )
+                  )
                 ]
-                (all dead (type) dead)
-              }
+                (lam p (prod ) { Nothing b })
+              ]
             )
           )
         )

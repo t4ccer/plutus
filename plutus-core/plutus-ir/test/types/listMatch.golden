@@ -1,1 +1,6 @@
-(fun (con integer) (all a_49 (type) (fun a_49 a_49)))
+listMatch:20:18:
+   |
+20 |     (lam p (prod (all a (type) (fun a a)) [List (all a (type) (fun a a))]) (proj 0 p))
+   |                  ^
+unexpected '('
+expecting '(' or ')'

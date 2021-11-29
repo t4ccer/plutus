@@ -83,6 +83,8 @@ module PlutusPrelude
     , printPretty
     -- * Text
     , showText
+    -- * Lists
+    , zipExact
     ) where
 
 import Control.Applicative (Alternative (..))
@@ -198,3 +200,9 @@ printPretty = print . pretty
 
 showText :: Show a => a -> T.Text
 showText = T.pack . show
+
+zipExact :: [a] -> [b] -> Maybe [(a,b)]
+zipExact [] []         = Just []
+zipExact [a] [b]       = Just [(a,b)]
+zipExact (a:as) (b:bs) = (:) (a, b) <$> zipExact as bs
+zipExact _ _           = Nothing

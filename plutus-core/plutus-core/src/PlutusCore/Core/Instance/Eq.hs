@@ -19,6 +19,7 @@ import PlutusCore.Eq
 import PlutusCore.Name
 import PlutusCore.Rename.Monad
 
+import Data.Foldable (for_)
 import Universe
 
 instance (GEq uni, Eq ann) => Eq (Type TyName uni ann) where
@@ -88,6 +89,11 @@ eqTypeM (TyFun ann1 dom1 cod1) (TyFun ann2 dom2 cod2) = do
 eqTypeM (TyBuiltin ann1 bi1) (TyBuiltin ann2 bi2) = do
     eqM ann1 ann2
     eqM bi1 bi2
+eqTypeM (TyProd ann1 tys1) (TyProd ann2 tys2) = do
+    eqM ann1 ann2
+    case zipExact tys1 tys2 of
+        Just ps -> for_ ps $ \(t1, t2) -> eqTypeM t1 t2
+        Nothing -> empty
 eqTypeM TyVar{}     _ = empty
 eqTypeM TyLam{}     _ = empty
 eqTypeM TyForall{}  _ = empty
@@ -95,6 +101,7 @@ eqTypeM TyIFix{}    _ = empty
 eqTypeM TyApp{}     _ = empty
 eqTypeM TyFun{}     _ = empty
 eqTypeM TyBuiltin{} _ = empty
+eqTypeM TyProd{} _ = empty
 
 -- See Note [Modulo alpha].
 -- See Note [Scope tracking]
@@ -140,6 +147,15 @@ eqTermM (Constant ann1 con1) (Constant ann2 con2) = do
 eqTermM (Builtin ann1 bi1) (Builtin ann2 bi2) = do
     eqM ann1 ann2
     eqM bi1 bi2
+eqTermM (Prod ann1 args1) (Prod ann2 args2) = do
+    eqM ann1 ann2
+    case zipExact args1 args2 of
+        Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
+        Nothing -> empty
+eqTermM (Proj ann1 i1 p1) (Proj ann2 i2 p2) = do
+    eqM ann1 ann2
+    eqM i1 i2
+    eqTermM p1 p2
 eqTermM LamAbs{}   _ = empty
 eqTermM TyAbs{}    _ = empty
 eqTermM IWrap{}    _ = empty
@@ -150,3 +166,5 @@ eqTermM TyInst{}   _ = empty
 eqTermM Var{}      _ = empty
 eqTermM Constant{} _ = empty
 eqTermM Builtin{}  _ = empty
+eqTermM Prod{}  _ = empty
+eqTermM Proj{}  _ = empty

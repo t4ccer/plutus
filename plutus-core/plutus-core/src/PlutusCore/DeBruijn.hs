@@ -133,6 +133,7 @@ deBruijnTyWithM h = go
         TyFun ann i o -> TyFun ann <$> go i <*> go o
         TyApp ann fun arg -> TyApp ann <$> go fun <*> go arg
         TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
+        TyProd ann tys -> TyProd ann <$> traverse go tys
         -- boring non-recursive cases
         TyBuiltin ann con -> pure $ TyBuiltin ann con
 
@@ -163,6 +164,8 @@ deBruijnTermWithM h = go
         Unwrap ann t -> Unwrap ann <$> go t
         IWrap ann pat arg t -> IWrap ann <$> goT pat <*> goT arg <*> go t
         Error ann ty -> Error ann <$> goT ty
+        Prod ann es -> Prod ann <$> traverse go es
+        Proj ann i p -> Proj ann i <$> go p
         -- boring non-recursive cases
         Constant ann con -> pure $ Constant ann con
         Builtin ann bn -> pure $ Builtin ann bn
@@ -194,6 +197,7 @@ unDeBruijnTyWithM h = go
       TyFun ann i o -> TyFun ann <$> go i <*> go o
       TyApp ann fun arg -> TyApp ann <$> go fun <*> go arg
       TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
+      TyProd ann tys -> TyProd ann <$> traverse go tys
       -- boring non-recursive cases
       TyBuiltin ann con -> pure $ TyBuiltin ann con
 
@@ -229,6 +233,8 @@ unDeBruijnTermWithM h = go
         Unwrap ann t -> Unwrap ann <$> go t
         IWrap ann pat arg t -> IWrap ann <$> goT pat <*> goT arg <*> go t
         Error ann ty -> Error ann <$> goT ty
+        Prod ann es -> Prod ann <$> traverse go es
+        Proj ann i p -> Proj ann i <$> go p
         -- boring non-recursive cases
         Constant ann con -> pure $ Constant ann con
         Builtin ann bn -> pure $ Builtin ann bn

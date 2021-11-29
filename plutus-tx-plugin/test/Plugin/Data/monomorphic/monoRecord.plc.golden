@@ -16,7 +16,13 @@
       MyMonoRecord
       [
         { [ MyMonoRecord_match ds ] (con integer) }
-        (lam i (con integer) (lam ds (con integer) i))
+        (lam
+          p
+          (prod (con integer) (con integer))
+          (let
+            (nonrec) (termbind (strict) (vardecl i (con integer)) (proj 0 p)) i
+          )
+        )
       ]
     )
   )

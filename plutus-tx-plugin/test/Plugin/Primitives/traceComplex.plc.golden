@@ -53,16 +53,13 @@
     (lam
       ds
       Bool
-      {
+      [
         [
-          [
-            { [ Bool_match ds ] (all dead (type) Unit) }
-            (abs dead (type) [ [ { trace Unit } (con string "yes") ] Unit ])
-          ]
-          (abs dead (type) [ { traceError Unit } (con string "no") ])
+          { [ Bool_match ds ] Unit }
+          (lam p (prod ) [ [ { trace Unit } (con string "yes") ] Unit ])
         ]
-        (all dead (type) dead)
-      }
+        (lam p (prod ) [ { traceError Unit } (con string "no") ])
+      ]
     )
   )
 )

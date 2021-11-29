@@ -43,30 +43,21 @@
                 (lam
                   ds
                   [ List a ]
-                  {
+                  [
                     [
-                      [
-                        {
-                          [ { Nil_match a } ds ] (all dead (type) (con integer))
-                        }
-                        (abs dead (type) acc)
-                      ]
-                      (lam
-                        ds
-                        a
-                        (lam
-                          tl
-                          [ List a ]
-                          (abs
-                            dead
-                            (type)
-                            [ [ go [ [ addInteger acc ] (con integer 1) ] ] tl ]
-                          )
-                        )
-                      )
+                      { [ { Nil_match a } ds ] (con integer) }
+                      (lam p (prod ) acc)
                     ]
-                    (all dead (type) dead)
-                  }
+                    (lam
+                      p
+                      (prod a [ List a ])
+                      (let
+                        (nonrec)
+                        (termbind (strict) (vardecl tl [ List a ]) (proj 1 p))
+                        [ [ go [ [ addInteger acc ] (con integer 1) ] ] tl ]
+                      )
+                    )
+                  ]
                 )
               )
             )

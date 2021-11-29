@@ -297,6 +297,7 @@ library
         time -any,
         transformers -any,
         unordered-containers -any,
+        vector -any,
         witherable -any,
         word-array -any,
         cardano-crypto-class -any,

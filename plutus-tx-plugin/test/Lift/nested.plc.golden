@@ -53,7 +53,7 @@
                                         case_Lift_Spec_NestedRecord_i0
                                         [
                                           case_Lift_Spec_NestedRecord_i1
-                                          arg_0_i2
+                                          (prod arg_0_i2)
                                         ]
                                       )
                                     )
@@ -75,8 +75,8 @@
                                 (lam
                                   case_GHC_Tuple_Tuple2_i0
                                   [
-                                    [ case_GHC_Tuple_Tuple2_i1 arg_0_i3 ]
-                                    arg_1_i2
+                                    case_GHC_Tuple_Tuple2_i1
+                                    (prod arg_0_i3 arg_1_i2)
                                   ]
                                 )
                               )
@@ -99,7 +99,8 @@
               (lam
                 case_GHC_Maybe_Just_i0
                 (lam
-                  case_GHC_Maybe_Nothing_i0 [ case_GHC_Maybe_Just_i2 arg_0_i3 ]
+                  case_GHC_Maybe_Nothing_i0
+                  [ case_GHC_Maybe_Just_i2 (prod arg_0_i3) ]
                 )
               )
             )
@@ -110,7 +111,9 @@
         (delay
           (lam
             case_GHC_Maybe_Just_i0
-            (lam case_GHC_Maybe_Nothing_i0 case_GHC_Maybe_Nothing_i1)
+            (lam
+              case_GHC_Maybe_Nothing_i0 [ case_GHC_Maybe_Nothing_i1 (prod ) ]
+            )
           )
         )
       )

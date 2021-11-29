@@ -236,6 +236,8 @@ costIsAcceptable = \case
   LamAbs{}   -> True
 
   Apply{}    -> False
+  Prod{}     -> False
+  Proj{}     -> False
 
   Force{}    -> True
   Delay{}    -> True
@@ -255,6 +257,8 @@ sizeIsAcceptable = \case
   -- small, but probably not worth it
   Constant{} -> False
   Apply{}    -> False
+  Prod{}     -> False
+  Proj{}     -> False
 
   Force _ t  -> sizeIsAcceptable t
   Delay _ t  -> sizeIsAcceptable t
