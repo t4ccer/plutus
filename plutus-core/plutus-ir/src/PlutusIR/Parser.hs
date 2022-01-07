@@ -90,6 +90,12 @@ prodTerm tm = inParens (PIR.prod <$> wordPos "prod" <*> many tm)
 projTerm :: Parametric
 projTerm tm = inParens (PIR.proj <$> wordPos "proj" <*> lexeme Lex.decimal <*> tm)
 
+tagTerm :: Parametric
+tagTerm tm = inParens (PIR.tag <$> wordPos "tag" <*> pType <*> lexeme Lex.decimal <*> tm)
+
+caseTerm :: Parametric
+caseTerm tm = inParens (PIR.kase <$> wordPos "case" <*> tm <*> many tm)
+
 letTerm
     :: Parser PTerm
 letTerm = Let <$> wordPos "let" <*> recursivity <*> NE.some (try binding) <*> pTerm
@@ -111,6 +117,8 @@ term' other = choice $ map try [
     , unwrapTerm self
     , prodTerm self
     , projTerm self
+    , tagTerm self
+    , caseTerm self
     , errorTerm self
     , inParens other
     , tyInstTerm self

@@ -1,1 +1,12 @@
-(delay (lam case_EmptyRose_0 [ case_EmptyRose_0 (prod arg_0_1) ]))
+(tag
+  0
+  (prod
+    (tag
+      1
+      (prod
+        (tag 0 (prod (tag 0 (prod ))))
+        (tag 1 (prod (tag 0 (prod (tag 0 (prod )))) (tag 0 (prod ))))
+      )
+    )
+  )
+)

@@ -418,14 +418,24 @@ costIsAcceptable = \case
   LamAbs{}   -> True
   TyAbs{}    -> True
 
+  -- Inlining products of size 1 or 0 seems okay, but does result in doing
+  -- the work for the elements at each use site.
+  Prod _ es  -> case es of
+      []  -> True
+      [e] -> costIsAcceptable e
+      _   -> False
+  -- Inlining tags and projections is acceptable, but does result in doing the work for the
+  -- body at each use site.
+  Tag _ _ _ e -> costIsAcceptable e
+  Proj _ _ e -> costIsAcceptable e
+  Case{} -> False
+
   -- Arguably we could allow these two, but they're uncommon anyway
   IWrap{}    -> False
   Unwrap{}   -> False
   Apply{}    -> False
   TyInst{}   -> False
   Let{}      -> False
-  Prod{}    -> False
-  Proj{}   -> False
 
 -- | Is the size increase (in the AST) of inlining a variable whose RHS is
 -- the given term acceptable?
@@ -438,6 +448,16 @@ sizeIsAcceptable = \case
   LamAbs _ _ _ t -> sizeIsAcceptable t
   TyAbs _ _ _ t  -> sizeIsAcceptable t
 
+  -- Inlining products of size 1 or 0 seems okay
+  Prod _ es  -> case es of
+      []  -> True
+      [e] -> sizeIsAcceptable e
+      _   -> False
+  -- Inlining tags and projections is acceptable
+  Tag _ _ _ e -> sizeIsAcceptable e
+  Proj _ _ e -> costIsAcceptable e
+  Case{} -> False
+
   -- Arguably we could allow these two, but they're uncommon anyway
   IWrap{}        -> False
   Unwrap{}       -> False
@@ -447,8 +467,6 @@ sizeIsAcceptable = \case
   Apply{}        -> False
   TyInst{}       -> False
   Let{}          -> False
-  Prod{}         -> False
-  Proj{}         -> False
 
 -- | Is this a an utterly trivial type which might as well be inlined?
 trivialType :: Type tyname uni a -> Bool

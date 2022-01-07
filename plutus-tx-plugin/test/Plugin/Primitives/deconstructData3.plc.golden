@@ -1,3 +1,1 @@
-(delay
-  (lam case_Nil_0 (lam case_Cons_1 [ case_Cons_1 (prod arg_0_2 arg_1_3) ]))
-)
+(tag 1 (prod (con data #02) (tag 1 (prod (con data #03) (tag 0 (prod ))))))

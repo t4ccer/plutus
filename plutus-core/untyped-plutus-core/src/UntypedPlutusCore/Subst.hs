@@ -74,6 +74,8 @@ termSubstFreeNamesA f = go Set.empty where
     go bvs (Force ann term)       = Force ann <$> go bvs term
     go bvs (Prod ann es)          = Prod ann <$> traverse (go bvs) es
     go bvs (Proj ann i p)         = Proj ann i <$> go bvs p
+    go bvs (Tag ann i p)          = Tag ann i <$> go bvs p
+    go bvs (Case ann arg cs)      = Case ann <$> go bvs arg <*> traverse (go bvs) cs
     go _   term@Constant{}        = pure term
     go _   term@Builtin{}         = pure term
     go _   term@Error{}           = pure term
@@ -105,6 +107,8 @@ termMapNames f = go
             Force ann t          -> Force ann (go t)
             Prod ann es          -> Prod ann (fmap go es)
             Proj ann i p         -> Proj ann i (go p)
+            Tag ann i p          -> Tag ann i (go p)
+            Case ann arg cs      -> Case ann (go arg) (fmap go cs)
 
             Constant ann c       -> Constant ann c
             Builtin ann b        -> Builtin ann b

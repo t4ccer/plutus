@@ -80,6 +80,8 @@ data Term name uni fun ann
     | Error !ann
     | Prod !ann ![Term name uni fun ann]
     | Proj !ann Int !(Term name uni fun ann)
+    | Tag !ann !Int !(Term name uni fun ann)
+    | Case !ann !(Term name uni fun ann) ![Term name uni fun ann]
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
 
@@ -108,6 +110,8 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     error    = \ann _ -> Error ann
     prod     = Prod
     proj     = Proj
+    tag      = \ann _ i term -> Tag ann i term
+    kase     = Case
 
 instance TPLC.AsConstant (Term name uni fun ann) where
     asConstant _        (Constant _ val) = pure val
@@ -138,6 +142,8 @@ termAnn (Force ann _)    = ann
 termAnn (Error ann)      = ann
 termAnn (Prod ann _)     = ann
 termAnn (Proj ann _ _)   = ann
+termAnn (Tag ann _ _)    = ann
+termAnn (Case ann _ _)   = ann
 
 bindFunM
     :: Monad m
@@ -155,6 +161,8 @@ bindFunM f = go where
     go (Error ann)            = pure $ Error ann
     go (Prod ann args)        = Prod ann <$> traverse go args
     go (Proj ann i term)      = Proj ann i <$> go term
+    go (Tag ann i term)       = Tag ann i <$> go term
+    go (Case ann arg cs)      = Case ann <$> go arg <*> traverse go cs
 
 bindFun
     :: (ann -> fun -> Term name uni fun' ann)
@@ -179,6 +187,8 @@ erase (TPLC.IWrap _ _ _ term)       = erase term
 erase (TPLC.Error ann _)            = Error ann
 erase (TPLC.Prod ann args)          = Prod ann (fmap erase args)
 erase (TPLC.Proj ann i term)        = Proj ann i (erase term)
+erase (TPLC.Tag ann _ i term)       = Tag ann i (erase term)
+erase (TPLC.Case ann term cs)       = Case ann (erase term) (fmap erase cs)
 
 -- | Erase a Typed Plutus Core Program to its untyped counterpart.
 eraseProgram :: TPLC.Program tyname name uni fun ann -> Program name uni fun ann

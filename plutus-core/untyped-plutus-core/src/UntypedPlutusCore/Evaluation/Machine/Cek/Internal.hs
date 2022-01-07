@@ -208,6 +208,7 @@ data CekValue uni fun =
       !(BuiltinRuntime (CekValue uni fun))  -- The partial application and its costing function.
                                             -- Check the docs of 'BuiltinRuntime' for details.
   | VProd {-# UNPACK #-} !(V.Vector (CekValue uni fun))
+  | VTag {-# UNPACK #-} !Int !(CekValue uni fun)
     deriving (Show)
 
 type CekValEnv uni fun = RAList (CekValue uni fun)
@@ -479,6 +480,7 @@ dischargeCekValue = \case
     -- or (b) it's needed for an error message.
     VBuiltin _ term env _                -> dischargeCekValEnv env term
     VProd es                             -> Prod () (toList $ fmap dischargeCekValue es)
+    VTag i e                             -> Tag () i (dischargeCekValue e)
 
 instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun) where
@@ -493,6 +495,24 @@ instance AsConstant (CekValue uni fun) where
     asConstant _        (VCon val) = pure val
     asConstant mayCause _          = throwNotAConstant mayCause
 
+data Accumulator i o s = Accumulator {-# UNPACK #-} !Int ![i] {-# UNPACK #-} !(MV.MVector s o)
+
+newAccumulator :: [i] -> ST s (Either (V.Vector o) (i, Accumulator i o s))
+newAccumulator es =
+    case es of
+        [] -> pure $ Left V.empty
+        t : ts -> do
+            let l = length es -- note, length of *whole* list
+            emptyArr <- MV.new l
+            pure $ Right (t, Accumulator 0 ts emptyArr)
+
+stepAccumulator :: Accumulator i o s -> o -> ST s (Either (V.Vector o) (i, Accumulator i o s))
+stepAccumulator (Accumulator nextIndex todo arr) next = do
+    MV.write arr nextIndex next
+    case todo of
+        []     -> Left <$> V.unsafeFreeze arr
+        t : ts -> pure $ Right (t, Accumulator (nextIndex+1) ts arr)
+
 {-|
 The context in which the machine operates.
 
@@ -503,8 +523,10 @@ data Context uni fun s
     = FrameApplyFun !(CekValue uni fun) !(Context uni fun s)                         -- ^ @[V _]@
     | FrameApplyArg !(CekValEnv uni fun) (Term NamedDeBruijn uni fun ()) !(Context uni fun s) -- ^ @[_ N]@
     | FrameForce !(Context uni fun s)                                               -- ^ @(force _)@
-    | FrameProd !(CekValEnv uni fun) {-# UNPACK #-} !Int ![Term NamedDeBruijn uni fun ()] {-# UNPACK #-} !(MV.MVector s (CekValue uni fun))! (Context uni fun s)
+    | FrameProd !(CekValEnv uni fun) {-# UNPACK #-} !(Accumulator (Term NamedDeBruijn uni fun ()) (CekValue uni fun) s) !(Context uni fun s)
     | FrameProj {-# UNPACK #-} !Int !(Context uni fun s)
+    | FrameTag {-# UNPACK #-} !Int !(Context uni fun s)
+    | FrameCases !(CekValEnv uni fun) {-# UNPACK #-} !(Accumulator (Term NamedDeBruijn uni fun ()) (CekValue uni fun) s) !(Context uni fun s)
     | NoFrame
     --deriving (Show)
 
@@ -515,6 +537,7 @@ toExMemory = \case
     VLamAbs {}  -> 1
     VBuiltin {} -> 1
     VProd {}    -> 1
+    VTag {}     -> 1
 {-# INLINE toExMemory #-}  -- It probably gets inlined anyway, but an explicit pragma
                            -- shouldn't hurt.
 
@@ -625,15 +648,22 @@ enterComputeCek = computeCek (toWordArray 0) where
         throwing_ _EvaluationFailure
     computeCek !unbudgetedSteps !ctx !env (Prod _ es) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
-        case es of
-            []     -> returnCek unbudgetedSteps ctx $ VProd V.empty
-            t : ts -> do
-                let l = length es
-                emptyArr <- CekM $ MV.new l
-                computeCek unbudgetedSteps' (FrameProd env 0 ts emptyArr ctx) env t
+        acc <- CekM $ newAccumulator es
+        case acc of
+            Left res        -> returnCek unbudgetedSteps ctx $ VProd res
+            Right (t, acc') -> computeCek unbudgetedSteps' (FrameProd env acc' ctx) env t
     computeCek !unbudgetedSteps !ctx !env (Proj _ i t) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
         computeCek unbudgetedSteps' (FrameProj i ctx) env t
+    computeCek !unbudgetedSteps !ctx !env (Tag _ i t) = do
+        !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
+        computeCek unbudgetedSteps' (FrameTag i ctx) env t
+    computeCek !unbudgetedSteps !ctx !env (Case _ arg cs) = do
+        !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
+        acc <- CekM $ newAccumulator (arg:cs)
+        case acc of
+            Left res        -> returnCek unbudgetedSteps ctx $ VProd res
+            Right (t, acc') -> computeCek unbudgetedSteps' (FrameCases env acc' ctx) env t
 
     {- | The returning phase of the CEK machine.
     Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -663,19 +693,28 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek !unbudgetedSteps (FrameApplyFun fun ctx) arg =
         applyEvaluate unbudgetedSteps ctx fun arg
-    returnCek !unbudgetedSteps (FrameProd env nextIndex todo arr ctx) e = do
-        CekM $ MV.write arr nextIndex e
-        case todo of
-            []     -> do
-                res <- CekM $ V.unsafeFreeze arr
-                returnCek unbudgetedSteps ctx $ VProd res
-            t : ts -> computeCek unbudgetedSteps (FrameProd env (nextIndex+1) ts arr ctx) env t
+    returnCek !unbudgetedSteps (FrameProd env acc ctx) e = do
+        r <- CekM $ stepAccumulator acc e
+        case r of
+            Right (next, acc') -> computeCek unbudgetedSteps (FrameProd env acc' ctx) env next
+            Left done          -> returnCek unbudgetedSteps ctx $ VProd done
     returnCek !unbudgetedSteps (FrameProj i ctx) p = case p of
         -- TODO: causes
         VProd es -> case es ^? ix i of
             Just e  -> returnCek unbudgetedSteps ctx e
             Nothing -> throwingWithCause _MachineError (ProductIndexOutOfBoundsMachineError i) Nothing
         _ -> throwingWithCause _MachineError NonProductIndexedMachineError Nothing
+    returnCek !unbudgetedSteps (FrameTag i ctx) e = returnCek unbudgetedSteps ctx (VTag i e)
+    returnCek !unbudgetedSteps (FrameCases env acc ctx) e = do
+        r <- CekM $ stepAccumulator acc e
+        case r of
+            Right (next, acc') -> computeCek unbudgetedSteps (FrameCases env acc' ctx) env next
+            Left done -> case done ^? ix 0 of
+                Just (VTag i arg) -> case done ^? ix (i+1) of
+                    Just fun -> applyEvaluate unbudgetedSteps ctx fun arg
+                    Nothing  -> throwingWithCause _MachineError (MissingCaseBranch i) Nothing
+                Just _ -> throwingWithCause _MachineError NonTagScrutinized Nothing
+                Nothing -> throwingWithCause _MachineError MissingCaseScrutinee Nothing
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;

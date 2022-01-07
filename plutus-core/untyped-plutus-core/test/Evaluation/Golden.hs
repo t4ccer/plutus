@@ -320,6 +320,30 @@ proj2 = Proj () 1 prod1
 proj3 :: Term TyName Name DefaultUni DefaultFun ()
 proj3 = Proj () 2 prod1
 
+tag1 :: Term TyName Name DefaultUni DefaultFun ()
+tag1 = Tag () (TySum () [integer, integer]) 0 (mkConstant @Integer () 1)
+
+tag2 :: Term TyName Name DefaultUni DefaultFun ()
+tag2 = Tag () (TySum () [integer, integer]) 1 (mkConstant @Integer () 2)
+
+case1 :: Term TyName Name DefaultUni DefaultFun ()
+case1 = runQuote $ do
+    a <- freshName "a"
+    let branch = LamAbs () a integer (Var () a)
+    pure $ Case () tag1 [branch, branch]
+
+case2 :: Term TyName Name DefaultUni DefaultFun ()
+case2 = runQuote $ do
+    a <- freshName "a"
+    let branch = LamAbs () a integer (Var () a)
+    pure $ Case () tag2 [branch, branch]
+
+caseNoBranch :: Term TyName Name DefaultUni DefaultFun ()
+caseNoBranch = Case () tag1 []
+
+caseNonTag :: Term TyName Name DefaultUni DefaultFun ()
+caseNonTag = Case () prod1 []
+
 -- Running the tests
 
 goldenVsPretty :: PrettyPlc a => String -> String -> a -> TestTree
@@ -397,6 +421,11 @@ namesAndTests =
    , ("proj1", proj1)
    , ("proj2", proj2)
    , ("proj3", proj3)
+   , ("tag1", tag1)
+   , ("case1", case1)
+   , ("case2", case2)
+   , ("caseNoBranch", caseNoBranch)
+   , ("caseNonTag", caseNonTag)
    ]
 
 test_golden :: TestTree

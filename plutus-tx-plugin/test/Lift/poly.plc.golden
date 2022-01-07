@@ -23,44 +23,30 @@
           )
         )
         (delay
-          (delay
-            (lam
-              arg_0_i0
-              (lam
-                arg_1_i0
-                (delay
-                  (lam
-                    case_Plugin_Data_Spec_Poly1_i0
-                    (lam
-                      case_Plugin_Data_Spec_Poly2_i0
-                      [
-                        case_Plugin_Data_Spec_Poly1_i2 (prod arg_0_i4 arg_1_i3)
-                      ]
-                    )
-                  )
-                )
-              )
-            )
-          )
+          (delay (lam arg_0_i0 (lam arg_1_i0 (tag 0 (prod arg_0_i2 arg_1_i1)))))
         )
       ]
+      (delay (delay (lam arg_0_i0 (tag 1 (prod arg_0_i1)))))
+    ]
+    (delay
       (delay
-        (delay
-          (lam
-            arg_0_i0
-            (delay
+        (lam
+          x_i0
+          (delay
+            (lam
+              case_Plugin_Data_Spec_Poly1_i0
               (lam
-                case_Plugin_Data_Spec_Poly1_i0
-                (lam
-                  case_Plugin_Data_Spec_Poly2_i0
-                  [ case_Plugin_Data_Spec_Poly2_i1 (prod arg_0_i3) ]
+                case_Plugin_Data_Spec_Poly2_i0
+                (case
+                  x_i3
+                  case_Plugin_Data_Spec_Poly1_i2
+                  case_Plugin_Data_Spec_Poly2_i1
                 )
               )
             )
           )
         )
       )
-    ]
-    (delay (delay (lam x_i0 x_i1)))
+    )
   ]
 )

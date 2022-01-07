@@ -116,6 +116,10 @@ instance ( PLC.PrettyClassicBy configName tyname
             sexp "prod" (PLC.consAnnIf config ann (fmap (prettyBy config) es))
         Proj ann i p ->
             sexp "proj" (PLC.consAnnIf config ann [pretty i, prettyBy config p])
+        Tag ann ty i t ->
+            sexp "tag" (PLC.consAnnIf config ann [prettyBy config ty, pretty i, prettyBy config t])
+        Case ann arg cs ->
+            sexp "case" (PLC.consAnnIf config ann (prettyBy config arg : fmap (prettyBy config) cs))
       where
         prettyTypeOf :: PLC.GShow t => PLC.Some (PLC.ValueOf t) -> Doc dann
         prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = pretty $ PLC.SomeTypeIn uni

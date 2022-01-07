@@ -5,7 +5,7 @@ module Check.Spec (tests) where
 
 import PlutusPrelude
 
-import PlutusCore
+import PlutusCore hiding (Tag)
 import PlutusCore.Check.Normal qualified as Normal
 import PlutusCore.Check.Uniques qualified as Uniques
 import PlutusCore.Check.Value qualified as VR

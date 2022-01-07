@@ -40,6 +40,8 @@ check (Apply _ t1 t2)        = check t1 >> check t2
 check (TyAbs _ _ _ t)        = check t
 check (Prod _ es)            = traverse_ check es
 check (Proj _ _ p)           = check p
+check (Tag _ ty _ p)         = normalType ty >> check p
+check (Case _ arg cs)        = check arg >> traverse_ check cs
 check Var{}                  = pure ()
 check Constant{}             = pure ()
 check Builtin{}              = pure ()
@@ -52,6 +54,7 @@ normalType (TyFun _ i o)       = normalType i >> normalType o
 normalType (TyForall _ _ _ ty) = normalType ty
 normalType (TyIFix _ pat arg)  = normalType pat >> normalType arg
 normalType (TyProd _ tys)      = traverse_ normalType tys
+normalType (TySum _ tys)       = traverse_ normalType tys
 normalType (TyLam _ _ _ ty)    = normalType ty
 -- See Note [PLC types and universes].
 normalType TyBuiltin{}         = pure ()

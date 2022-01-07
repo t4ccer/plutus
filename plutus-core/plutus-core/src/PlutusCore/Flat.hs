@@ -233,6 +233,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyApp     ann t t'    -> encodeType 6 <> encode ann <> encode t   <> encode t'
         -- TODO: can we trust the list instance or should we do this manually?
         TyProd    ann ts      -> encodeType 7 <> encode ann <> encode ts
+        TySum     ann ts      -> encodeType 8 <> encode ann <> encode ts
 
     decode = go =<< decodeType
         where go 0 = TyVar     <$> decode <*> decode
@@ -243,6 +244,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
               go 5 = TyLam     <$> decode <*> decode <*> decode <*> decode
               go 6 = TyApp     <$> decode <*> decode <*> decode
               go 7 = TyProd    <$> decode <*> decode
+              go 8 = TySum     <$> decode <*> decode
               go _ = fail "Failed to decode Type TyName ()"
 
     size tm sz = typeTagWidth + sz + case tm of
@@ -254,6 +256,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyLam     ann n k t   -> getSize ann + getSize n   + getSize k + getSize t
         TyApp     ann t t'    -> getSize ann + getSize t   + getSize t'
         TyProd    ann ts      -> getSize ann + getSize ts
+        TySum     ann ts      -> getSize ann + getSize ts
 
 termTagWidth :: NumBits
 termTagWidth = 4
@@ -284,6 +287,8 @@ instance ( Closed uni
         Builtin  ann bn        -> encodeTerm 9 <> encode ann <> encode bn
         Prod     ann es        -> encodeTerm 10 <> encode ann <> encode es
         Proj     ann i p       -> encodeTerm 11 <> encode ann <> encode i <> encode p
+        Tag      ann ty i t    -> encodeTerm 12 <> encode ann <> encode ty <> encode i <> encode t
+        Case     ann arg cs    -> encodeTerm 13 <> encode ann <> encode arg <> encode cs
 
     decode = go =<< decodeTerm
         where go 0  = Var      <$> decode <*> decode
@@ -298,6 +303,8 @@ instance ( Closed uni
               go 9  = Builtin  <$> decode <*> decode
               go 10 = Prod    <$> decode <*> decode
               go 11 = Proj    <$> decode <*> decode <*> decode
+              go 12 = Tag     <$> decode <*> decode <*> decode <*> decode
+              go 13 = Case    <$> decode <*> decode <*> decode
               go _  = fail "Failed to decode Term TyName Name ()"
 
     size tm sz = termTagWidth + sz + case tm of
@@ -313,6 +320,8 @@ instance ( Closed uni
         Builtin  ann bn        -> getSize ann + getSize bn
         Prod     ann es        -> getSize ann + getSize es
         Proj     ann i p       -> getSize ann + getSize i + getSize p
+        Tag      ann ty i p    -> getSize ann + getSize ty + getSize i + getSize p
+        Case     ann arg cs    -> getSize ann + getSize arg + getSize cs
 
 instance ( Closed uni
          , Flat fun

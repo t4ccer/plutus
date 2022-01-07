@@ -67,6 +67,8 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     error    :: ann -> Type tyname uni ann -> term ann
     prod     :: ann -> [term ann] -> term ann
     proj     :: ann -> Int -> term ann -> term ann
+    tag      :: ann -> Type tyname uni ann -> Int -> term ann -> term ann
+    kase     :: ann -> term ann -> [term ann] -> term ann
 
     termLet  :: ann -> TermDef term tyname name uni fun ann -> term ann -> term ann
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
@@ -113,6 +115,8 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     error    = Error
     prod     = Prod
     proj     = Proj
+    tag      = Tag
+    kase     = Case
 
 embed :: TermLike term tyname name uni fun => Term tyname name uni fun ann -> term ann
 embed = \case
@@ -128,6 +132,8 @@ embed = \case
     IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
     Prod a es         -> prod a (fmap embed es)
     Proj a i p        -> proj a i (embed p)
+    Tag a ty i p      -> tag a ty i (embed p)
+    Case a arg cs     -> kase a (embed arg) (fmap embed cs)
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
 mkVar :: TermLike term tyname name uni fun => ann -> VarDecl tyname name uni fun ann -> term ann

@@ -59,6 +59,7 @@ instance (PrettyReadableBy configName tyname, GShow uni) =>
             typeBinderDocM $ \prettyBinding prettyBody ->
                 "\\" <> prettyBinding name kind <+> "->" <+> prettyBody body
         TyProd _ ts -> unitDocM mempty
+        TySum _ ts -> unitDocM mempty
 
 instance
         ( PrettyReadableBy configName tyname
@@ -91,6 +92,8 @@ instance
                 "error" <+> braces (prettyIn ToTheRight botFixity ty)
         Prod _ args             -> unitDocM "prod"
         Proj _ i arg             -> unitDocM "proj"
+        Tag{} -> unitDocM "tag"
+        Case{} -> unitDocM "case"
 
 instance PrettyReadableBy configName (Term tyname name uni fun a) =>
         PrettyBy (PrettyConfigReadable configName) (Program tyname name uni fun a) where

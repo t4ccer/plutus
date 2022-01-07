@@ -218,6 +218,40 @@ inferTypeM (Proj ann i term) = do
             Just t  -> pure $ Normalized t
             Nothing -> throwing _TypeError (TypeMismatch ann (void term) (TyProd () (replicate i dummyType)) vTermTy)
         _ -> throwing _TypeError (TypeMismatch ann (void term) (TyProd () (replicate i dummyType)) vTermTy)
+
+inferTypeM t@(Tag ann ty i term) = do
+    vTermTy <- inferTypeM term
+    vSumTy <- normalizeTypeM $ void ty
+    case unNormalized vSumTy of
+        TySum _ vTys -> case vTys !? i of
+            Just ity  -> do
+                unless (ity == unNormalized vTermTy) $ throwing _TypeError (TypeMismatch ann (void term) ity vTermTy)
+                pure vSumTy
+            Nothing -> throwing _TypeError (TypeMismatch ann (void t) (TySum () (replicate i dummyType)) vSumTy)
+        _ -> throwing _TypeError (TypeMismatch ann (void t) (TySum () (replicate i dummyType)) vSumTy)
+
+inferTypeM (Case ann arg cs) = do
+    vTermTy <- inferTypeM arg
+    caseTys <- traverse inferTypeM cs
+    case unNormalized vTermTy of
+        TySum _ vTys -> case zipExact vTys caseTys of
+            Just ps -> do
+                cRess <- for ps $ \(ty, cty) -> case unNormalized cty of
+                    TyFun _ dom cod -> do
+                        unless (dom == ty) $ throwing _TypeError (TypeMismatch ann (void arg) (TyFun () ty dummyType) cty)
+                        pure cod
+                    _ -> throwing _TypeError (TypeMismatch ann (void arg) (TyFun () ty dummyType) cty)
+                case theElement cRess of
+                    Just e -> pure $ Normalized e
+                    Nothing -> throwing _TypeError (TypeMismatch ann (void arg) (TySum () (replicate (length cs) dummyType)) vTermTy)
+            Nothing -> throwing _TypeError (TypeMismatch ann (void arg) (TySum () (replicate (length cs) dummyType)) vTermTy)
+        _ -> throwing _TypeError (TypeMismatch ann (void arg) (TySum () (replicate (length cs) dummyType)) vTermTy)
+    where
+        theElement :: Eq a => [a] -> Maybe a
+        theElement [] = Nothing
+        theElement (a:as) = case theElement as of
+            Just a' -> if a == a' then Just a else Nothing
+            Nothing -> Just a
 -- ##############
 -- ## Port end ##
 -- ##############

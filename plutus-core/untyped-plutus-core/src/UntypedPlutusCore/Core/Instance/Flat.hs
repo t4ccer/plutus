@@ -113,16 +113,18 @@ encodeTerm
     => Term name uni fun ann
     -> Encoding
 encodeTerm = \case
-    Var      ann n    -> encodeTermTag 0 <> encode ann <> encode n
-    Delay    ann t    -> encodeTermTag 1 <> encode ann <> encode t
-    LamAbs   ann n t  -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encode t
-    Apply    ann t t' -> encodeTermTag 3 <> encode ann <> encode t <> encode t'
-    Constant ann c    -> encodeTermTag 4 <> encode ann <> encode c
-    Force    ann t    -> encodeTermTag 5 <> encode ann <> encode t
-    Error    ann      -> encodeTermTag 6 <> encode ann
-    Builtin  ann bn   -> encodeTermTag 7 <> encode ann <> encode bn
-    Prod     ann es   -> encodeTermTag 8 <> encode ann <> encode es
-    Proj     ann i p  -> encodeTermTag 9 <> encode ann <> encode i <> encode p
+    Var      ann n      -> encodeTermTag 0 <> encode ann <> encode n
+    Delay    ann t      -> encodeTermTag 1 <> encode ann <> encode t
+    LamAbs   ann n t    -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encode t
+    Apply    ann t t'   -> encodeTermTag 3 <> encode ann <> encode t <> encode t'
+    Constant ann c      -> encodeTermTag 4 <> encode ann <> encode c
+    Force    ann t      -> encodeTermTag 5 <> encode ann <> encode t
+    Error    ann        -> encodeTermTag 6 <> encode ann
+    Builtin  ann bn     -> encodeTermTag 7 <> encode ann <> encode bn
+    Prod     ann es     -> encodeTermTag 8 <> encode ann <> encode es
+    Proj     ann i p    -> encodeTermTag 9 <> encode ann <> encode i <> encode p
+    Tag      ann i t    -> encodeTermTag 10 <> encode ann <> encode i <> encode t
+    Case     ann arg cs -> encodeTermTag 11 <> encode ann <> encode arg <> encode cs
 
 data SizeLimit = NoLimit | Limit Integer
 
@@ -169,6 +171,8 @@ decodeTerm sizeLimit = go =<< decodeTermTag
           go 7 = Builtin  <$> decode <*> decode
           go 8 = Prod     <$> decode <*> decode
           go 9 = Proj     <$> decode <*> decode <*> decode
+          go 10 = Tag     <$> decode <*> decode <*> decode
+          go 11 = Case    <$> decode <*> decode <*> decode
           go t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -185,16 +189,18 @@ sizeTerm
     -> NumBits
     -> NumBits
 sizeTerm tm sz = termTagWidth + sz + case tm of
-    Var      ann n    -> getSize ann + getSize n
-    Delay    ann t    -> getSize ann + getSize t
-    LamAbs   ann n t  -> getSize ann + getSize n + getSize t
-    Apply    ann t t' -> getSize ann + getSize t + getSize t'
-    Constant ann c    -> getSize ann + getSize c
-    Force    ann t    -> getSize ann + getSize t
-    Error    ann      -> getSize ann
-    Builtin  ann bn   -> getSize ann + getSize bn
-    Prod     ann es   -> getSize ann + getSize es
-    Proj     ann i p  -> getSize ann + getSize i + getSize p
+    Var      ann n      -> getSize ann + getSize n
+    Delay    ann t      -> getSize ann + getSize t
+    LamAbs   ann n t    -> getSize ann + getSize n + getSize t
+    Apply    ann t t'   -> getSize ann + getSize t + getSize t'
+    Constant ann c      -> getSize ann + getSize c
+    Force    ann t      -> getSize ann + getSize t
+    Error    ann        -> getSize ann
+    Builtin  ann bn     -> getSize ann + getSize bn
+    Prod     ann es     -> getSize ann + getSize es
+    Proj     ann i p    -> getSize ann + getSize i + getSize p
+    Tag      ann i p    -> getSize ann + getSize i + getSize p
+    Case     ann arg cs -> getSize ann + getSize arg + getSize cs
 
 -- | A newtype to indicate that the program should be serialized with size checks
 -- for constants.

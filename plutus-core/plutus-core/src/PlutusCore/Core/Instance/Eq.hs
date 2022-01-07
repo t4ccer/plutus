@@ -94,6 +94,11 @@ eqTypeM (TyProd ann1 tys1) (TyProd ann2 tys2) = do
     case zipExact tys1 tys2 of
         Just ps -> for_ ps $ \(t1, t2) -> eqTypeM t1 t2
         Nothing -> empty
+eqTypeM (TySum ann1 tys1) (TySum ann2 tys2) = do
+    eqM ann1 ann2
+    case zipExact tys1 tys2 of
+        Just ps -> for_ ps $ \(t1, t2) -> eqTypeM t1 t2
+        Nothing -> empty
 eqTypeM TyVar{}     _ = empty
 eqTypeM TyLam{}     _ = empty
 eqTypeM TyForall{}  _ = empty
@@ -102,6 +107,7 @@ eqTypeM TyApp{}     _ = empty
 eqTypeM TyFun{}     _ = empty
 eqTypeM TyBuiltin{} _ = empty
 eqTypeM TyProd{} _ = empty
+eqTypeM TySum{} _ = empty
 
 -- See Note [Modulo alpha].
 -- See Note [Scope tracking]
@@ -156,6 +162,17 @@ eqTermM (Proj ann1 i1 p1) (Proj ann2 i2 p2) = do
     eqM ann1 ann2
     eqM i1 i2
     eqTermM p1 p2
+eqTermM (Tag ann1 ty1 i1 p1) (Tag ann2 ty2 i2 p2) = do
+    eqM ann1 ann2
+    eqTypeM ty1 ty2
+    eqM i1 i2
+    eqTermM p1 p2
+eqTermM (Case ann1 a1 cs1) (Case ann2 a2 cs2) = do
+    eqM ann1 ann2
+    eqTermM a1 a2
+    case zipExact cs1 cs2 of
+        Just ps -> for_ ps $ \(t1, t2) -> eqTermM t1 t2
+        Nothing -> empty
 eqTermM LamAbs{}   _ = empty
 eqTermM TyAbs{}    _ = empty
 eqTermM IWrap{}    _ = empty
@@ -168,3 +185,5 @@ eqTermM Constant{} _ = empty
 eqTermM Builtin{}  _ = empty
 eqTermM Prod{}  _ = empty
 eqTermM Proj{}  _ = empty
+eqTermM Tag{}  _ = empty
+eqTermM Case{}  _ = empty

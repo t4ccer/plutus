@@ -58,6 +58,8 @@ instance (PrettyClassicBy configName tyname, GShow uni, Pretty ann) =>
                 [prettyBy config n, prettyBy config k, prettyBy config t])
         TyProd ann tys    ->
             sexp "prod" (consAnnIf config ann (fmap (prettyBy config) tys))
+        TySum ann tys    ->
+            sexp "sum" (consAnnIf config ann (fmap (prettyBy config) tys))
 
 instance
         ( PrettyClassicBy configName tyname
@@ -95,6 +97,10 @@ instance
             sexp "prod" (consAnnIf config ann (fmap (prettyBy config) es))
         Proj ann i p ->
             sexp "proj" (consAnnIf config ann [pretty i, prettyBy config p])
+        Tag ann ty i p ->
+            sexp "tag" (consAnnIf config ann [pretty i, prettyBy config ty, prettyBy config p])
+        Case ann arg cs ->
+            sexp "case" (consAnnIf config ann (prettyBy config arg : fmap (prettyBy config) cs))
       where
         prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc dann
         prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni

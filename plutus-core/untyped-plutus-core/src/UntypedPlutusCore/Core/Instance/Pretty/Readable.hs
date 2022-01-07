@@ -45,6 +45,8 @@ instance
         Error _ -> unitDocM "error"
         Prod _ es -> unitDocM "prod"
         Proj _ i p -> unitDocM "proj"
+        Tag{} -> unitDocM "tag"
+        Case{} -> unitDocM "case"
 
 instance PrettyReadableBy configName (Term name uni fun a) =>
         PrettyBy (PrettyConfigReadable configName) (Program name uni fun a) where

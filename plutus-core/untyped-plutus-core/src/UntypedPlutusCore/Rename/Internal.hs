@@ -28,6 +28,8 @@ renameTermM (Delay ann term)           = Delay ann <$> renameTermM term
 renameTermM (Force ann term)           = Force ann <$> renameTermM term
 renameTermM (Prod ann es)              = Prod ann <$> traverse renameTermM es
 renameTermM (Proj ann i p)             = Proj ann i <$> renameTermM p
+renameTermM (Tag ann i p)              = Tag ann i <$> renameTermM p
+renameTermM (Case ann arg cs)          = Case ann <$> renameTermM arg <*> traverse renameTermM cs
 renameTermM con@Constant{}             = pure con
 renameTermM bi@Builtin{}               = pure bi
 

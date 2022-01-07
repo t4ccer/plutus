@@ -28,3 +28,5 @@ lowerTerm = \case
     Unwrap x t      -> PLC.Unwrap x <$> lowerTerm t
     Prod x es       -> PLC.Prod x <$> traverse lowerTerm es
     Proj x i p      -> PLC.Proj x i <$> lowerTerm p
+    Tag a ty i t    -> PLC.Tag a ty i <$> lowerTerm t
+    Case a arg cs   -> PLC.Case a <$> lowerTerm arg <*> traverse lowerTerm cs

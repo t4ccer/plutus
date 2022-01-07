@@ -47,6 +47,8 @@ fvTerm = \case
     IWrap _ _ _ t ->   fvTerm t
     Prod _ es ->   foldMap fvTerm es
     Proj _ _ p ->   fvTerm p
+    Tag _ _ _ t ->    fvTerm t
+    Case _ arg cs ->  fvTerm arg <> foldMap fvTerm cs
     Constant{}       -> mempty
     Builtin{}        -> mempty
     Error{}          -> mempty
@@ -71,6 +73,8 @@ ftvTerm = \case
     Error _ ty        -> ftvTy ty
     Prod _ es ->   foldMap ftvTerm es
     Proj _ _ p ->   ftvTerm p
+    Tag _ ty _ t ->    ftvTy ty <> ftvTerm t
+    Case _ arg cs ->  ftvTerm arg <> foldMap ftvTerm cs
     Var{}               -> mempty
     Constant{}          -> mempty
     Builtin{}           -> mempty

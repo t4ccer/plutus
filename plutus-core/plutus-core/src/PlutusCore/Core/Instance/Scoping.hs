@@ -49,6 +49,8 @@ instance tyname ~ TyName => EstablishScoping (Type tyname uni) where
     establishScoping (TyBuiltin _ fun) = pure $ TyBuiltin NotAName fun
     establishScoping (TyProd _ tys) =
         TyProd NotAName <$> traverse establishScoping tys
+    establishScoping (TySum _ tys) =
+        TySum NotAName <$> traverse establishScoping tys
 
 instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name uni fun) where
     establishScoping (LamAbs _ nameDup ty body)  = do
@@ -72,6 +74,8 @@ instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name un
     establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
     establishScoping (Prod _ es) = Prod NotAName <$> traverse establishScoping es
     establishScoping (Proj _ i p) = Proj NotAName i <$> establishScoping p
+    establishScoping (Tag _ ty i p) = Tag NotAName <$> establishScoping ty <*> pure i <*> establishScoping p
+    establishScoping (Case _ arg es) = Case NotAName <$> establishScoping arg <*> traverse establishScoping es
 
 instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Program tyname name uni fun) where
     establishScoping (Program _ ver term) =
@@ -88,6 +92,7 @@ instance tyname ~ TyName => CollectScopeInfo (Type tyname uni) where
     collectScopeInfo (TyVar ann name) = handleSname ann name
     collectScopeInfo (TyBuiltin _ _) = mempty
     collectScopeInfo (TyProd _ tys) = foldMap collectScopeInfo tys
+    collectScopeInfo (TySum _ tys) = foldMap collectScopeInfo tys
 
 instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name uni fun) where
     collectScopeInfo (LamAbs ann name ty body)  =
@@ -105,6 +110,8 @@ instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name un
     collectScopeInfo (Builtin _ _) = mempty
     collectScopeInfo (Prod _ es) = foldMap collectScopeInfo es
     collectScopeInfo (Proj _ _ p) = collectScopeInfo p
+    collectScopeInfo (Tag _ ty _ p) = collectScopeInfo ty <> collectScopeInfo p
+    collectScopeInfo (Case _ arg cs) = collectScopeInfo arg <> foldMap collectScopeInfo cs
 
 instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Program tyname name uni fun) where
     collectScopeInfo (Program _ _ term) = collectScopeInfo term

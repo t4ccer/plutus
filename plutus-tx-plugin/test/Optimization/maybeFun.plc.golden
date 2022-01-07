@@ -1,51 +1,27 @@
 (program
   1.0.0
-  [
+  (lam
+    ds_i0
     (lam
-      Nothing_i0
-      (lam
-        ds_i0
+      ds_i0
+      (case
+        ds_i2
         (lam
-          ds_i0
-          [
-            [
-              (force ds_i2)
-              (lam
-                p_i0
-                [
-                  [
-                    (force ds_i2)
-                    (lam
-                      p_i0
-                      [
-                        (lam
-                          arg_0_i0
-                          (delay
-                            (lam
-                              case_Just_i0
-                              (lam
-                                case_Nothing_i0 [ case_Just_i2 (prod arg_0_i3) ]
-                              )
-                            )
-                          )
-                        )
-                        [ [ (builtin addInteger) (proj 0 p_i2) ] (proj 0 p_i1) ]
-                      ]
-                    )
-                  ]
-                  (lam p_i0 (force Nothing_i5))
-                ]
-              )
-            ]
-            (lam p_i0 (force Nothing_i4))
-          ]
+          p_i0
+          (case
+            ds_i2
+            (lam
+              p_i0
+              [
+                (lam arg_0_i0 (tag 0 (prod arg_0_i1)))
+                [ [ (builtin addInteger) (proj 0 p_i2) ] (proj 0 p_i1) ]
+              ]
+            )
+            (lam p_i0 (tag 1 (prod )))
+          )
         )
+        (lam p_i0 (tag 1 (prod )))
       )
     )
-    (delay
-      (delay
-        (lam case_Just_i0 (lam case_Nothing_i0 [ case_Nothing_i1 (prod ) ]))
-      )
-    )
-  ]
+  )
 )

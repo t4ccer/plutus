@@ -16,19 +16,16 @@
           )
         )
       )
-      (lam
-        arg_0_i0
+      (lam arg_0_i0 (lam arg_1_i0 (tag 0 (prod arg_0_i2 arg_1_i1))))
+    ]
+    (lam
+      x_i0
+      (delay
         (lam
-          arg_1_i0
-          (delay
-            (lam
-              case_Plugin_Data_Spec_MyMonoRecord_i0
-              [ case_Plugin_Data_Spec_MyMonoRecord_i1 (prod arg_0_i3 arg_1_i2) ]
-            )
-          )
+          case_Plugin_Data_Spec_MyMonoRecord_i0
+          (case x_i2 case_Plugin_Data_Spec_MyMonoRecord_i1)
         )
       )
-    ]
-    (lam x_i0 x_i1)
+    )
   ]
 )

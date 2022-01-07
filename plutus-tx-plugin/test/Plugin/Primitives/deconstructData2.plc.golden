@@ -1,1 +1,9 @@
-(delay (lam case_Tuple2_0 [ case_Tuple2_0 (prod arg_0_1 arg_1_2) ]))
+(tag
+  0
+  (prod
+    (con integer 1)
+    (tag
+      1 (prod (con integer 2) (tag 1 (prod (con integer 3) (tag 0 (prod )))))
+    )
+  )
+)

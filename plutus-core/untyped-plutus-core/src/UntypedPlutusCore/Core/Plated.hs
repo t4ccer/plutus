@@ -45,6 +45,8 @@ termSubterms f = \case
     Force ann t     -> Force ann <$> f t
     Prod ann args   -> Prod ann <$> traverse f args
     Proj ann i t    -> Proj ann i <$> f t
+    Tag ann i t     -> Tag ann i <$> f t
+    Case ann arg cs -> Case ann <$> f arg <*> traverse f cs
     e@Error {}      -> pure e
     v@Var {}        -> pure v
     c@Constant {}   -> pure c

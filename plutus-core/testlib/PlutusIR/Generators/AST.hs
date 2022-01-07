@@ -81,9 +81,11 @@ genTerm = simpleRecursive nonRecursive recursive where
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
     prodGen = Prod () <$> Gen.list (Range.linear 0 10) genTerm
     projGen = Proj () <$> Gen.int (Range.linear 0 10) <*> genTerm
+    tagGen = Tag () <$> genType <*> Gen.int (Range.linear 0 10) <*> genTerm
+    caseGen = Case () <$> genTerm <*> Gen.list (Range.linear 0 10) genTerm
     errorGen = Error () <$> genType
     letGen = Let () <$> genRecursivity <*> Gen.nonEmpty (Range.linear 1 10) genBinding <*> genTerm
-    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, letGen, prodGen, projGen]
+    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, letGen, prodGen, projGen, tagGen, caseGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
 genProgram :: PLC.AstGen (Program TyName Name PLC.DefaultUni PLC.DefaultFun ())

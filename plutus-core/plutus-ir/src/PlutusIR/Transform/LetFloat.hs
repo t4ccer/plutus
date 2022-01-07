@@ -295,6 +295,8 @@ removeLets marks term = runWriter $ go term
         Unwrap a t -> Unwrap a <$> go t
         Prod a es -> Prod a <$> traverse go es
         Proj a i p -> Proj a i <$> go p
+        Tag a ty i t -> Tag a ty i <$> go t
+        Case a arg cs -> Case a <$> go arg <*> traverse go cs
 
         -- no term inside here, nothing to do
         t@Var{} -> pure t

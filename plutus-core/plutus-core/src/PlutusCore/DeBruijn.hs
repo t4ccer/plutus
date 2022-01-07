@@ -134,6 +134,7 @@ deBruijnTyWithM h = go
         TyApp ann fun arg -> TyApp ann <$> go fun <*> go arg
         TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
         TyProd ann tys -> TyProd ann <$> traverse go tys
+        TySum ann tys -> TySum ann <$> traverse go tys
         -- boring non-recursive cases
         TyBuiltin ann con -> pure $ TyBuiltin ann con
 
@@ -142,6 +143,7 @@ deBruijnTermWithM
     => (Unique -> m Index)
     -> Term TyName Name uni fun ann
     -> m (Term NamedTyDeBruijn NamedDeBruijn uni fun ann)
+
 deBruijnTermWithM h = go
   where
     goT :: Type TyName uni ann -> m (Type NamedTyDeBruijn uni ann)
@@ -166,6 +168,8 @@ deBruijnTermWithM h = go
         Error ann ty -> Error ann <$> goT ty
         Prod ann es -> Prod ann <$> traverse go es
         Proj ann i p -> Proj ann i <$> go p
+        Tag ann ty i p -> Tag ann <$> goT ty <*> pure i <*> go p
+        Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
         -- boring non-recursive cases
         Constant ann con -> pure $ Constant ann con
         Builtin ann bn -> pure $ Builtin ann bn
@@ -198,6 +202,7 @@ unDeBruijnTyWithM h = go
       TyApp ann fun arg -> TyApp ann <$> go fun <*> go arg
       TyIFix ann pat arg -> TyIFix ann <$> go pat <*> go arg
       TyProd ann tys -> TyProd ann <$> traverse go tys
+      TySum ann tys -> TySum ann <$> traverse go tys
       -- boring non-recursive cases
       TyBuiltin ann con -> pure $ TyBuiltin ann con
 
@@ -235,6 +240,8 @@ unDeBruijnTermWithM h = go
         Error ann ty -> Error ann <$> goT ty
         Prod ann es -> Prod ann <$> traverse go es
         Proj ann i p -> Proj ann i <$> go p
+        Tag ann ty i p -> Tag ann <$> goT ty <*> pure i <*> go p
+        Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
         -- boring non-recursive cases
         Constant ann con -> pure $ Constant ann con
         Builtin ann bn -> pure $ Builtin ann bn

@@ -35,15 +35,15 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Name
 import PlutusCore.Pretty (PrettyConfigPlc, PrettyConst)
 
+import Control.Lens ((^?))
+import Control.Lens.At (ix)
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.ST
 import Data.Array
 import Data.DList (DList)
 import Data.DList qualified as DList
-import Data.Proxy
 import Data.List.Extra ((!?))
-import Data.Proxy
 import Data.STRef
 import Data.Text (Text)
 import Universe
@@ -61,6 +61,7 @@ data CkValue uni fun =
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
   | VProd [CkValue uni fun]
+  | VTag (Type TyName uni ()) Int (CkValue uni fun)
     deriving (Show)
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
@@ -82,6 +83,7 @@ ckValueToTerm = \case
     VIWrap  ty1 ty2 val  -> IWrap  () ty1 ty2 $ ckValueToTerm val
     VBuiltin term _      -> term
     VProd es             -> Prod () (fmap ckValueToTerm es)
+    VTag ty i t          -> Tag () ty i (ckValueToTerm t)
 
 data CkEnv uni fun s = CkEnv
     { ckEnvRuntime    :: BuiltinsRuntime fun (CkValue uni fun)
@@ -137,6 +139,8 @@ data Frame uni fun
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
     | FrameProd [Term TyName Name uni fun ()] [CkValue uni fun]
     | FrameProj Int
+    | FrameTag (Type TyName uni ()) Int
+    | FrameCase [Term TyName Name uni fun ()] [CkValue uni fun]
 
 type Context uni fun = [Frame uni fun]
 
@@ -170,6 +174,8 @@ substituteDb varFor new = go where
          IWrap    () pat arg term -> IWrap    () pat arg (go term)
          Prod     () es           -> Prod     () (fmap go es)
          Proj     () i p          -> Proj     () i (go p)
+         Tag      () ty i p       -> Tag      () ty i (go p)
+         Case     () arg cs       -> Case     () (go arg) (fmap go cs)
          b@Builtin{}              -> b
          e@Error  {}              -> e
     goUnder var term = if var == varFor then term else go term
@@ -193,6 +199,8 @@ substTyInTerm tn0 ty0 = go where
          Error   () ty           -> Error   () (goTy ty)
          Prod    () es           -> Prod    () (fmap go es)
          Proj    () i p          -> Proj    () i (go p)
+         Tag     () ty i p       -> Tag     () (goTy ty) i (go p)
+         Case    () arg cs       -> Case    () (go arg) (fmap go cs)
     goUnder tn term = if tn == tn0 then term else go term
     goTy = substTyInTy tn0 ty0
 
@@ -210,6 +218,7 @@ substTyInTy tn0 ty0 = go where
          TyForall () tn k ty -> TyForall () tn k (goUnder tn ty)
          TyLam    () tn k ty -> TyLam    () tn k (goUnder tn ty)
          TyProd   () tys     -> TyProd   () (fmap go tys)
+         TySum    () tys     -> TySum    () (fmap go tys)
          bt@TyBuiltin{}      -> bt
     goUnder tn ty = if tn == tn0 then ty else go ty
 
@@ -242,6 +251,8 @@ stack |> Prod _ es               = case es of
     []     -> stack <| VProd []
     t : ts -> FrameProd ts [] : stack |> t
 stack |> Proj _ i p              = FrameProj i : stack |> p
+stack |> Tag _ ty i p            = FrameTag ty i : stack |> p
+stack |> Case _ arg cs           = FrameCase cs [] : stack |> arg
 _     |> Error{}                 =
     throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) Nothing
 _     |> var@Var{}               =
@@ -274,13 +285,24 @@ FrameUnwrap        : stack <| wrapped = case wrapped of
 FrameProd todo done : stack <| e =
     let done' = e:done
     in case todo of
-        []     -> stack <| VProd (reverse done')
         t : ts -> FrameProd ts done' : stack |> t
+        []     -> stack <| VProd (reverse done')
 FrameProj i : stack <| prod = case prod of
     VProd p -> case p !? i of
         Just e  -> stack <| e
         Nothing -> throwingWithCause _MachineError (ProductIndexOutOfBoundsMachineError i) $ Nothing
     _ -> throwingWithCause _MachineError NonProductIndexedMachineError $ Nothing
+FrameTag ty i : stack <| e = stack <| VTag ty i e
+FrameCase todo done : stack <| e =
+    let done' = e:done
+    in case todo of
+        t : ts -> FrameCase ts done' : stack |> t
+        []     -> let final = reverse done' in case final ^? ix 0 of
+                Just (VTag _ i arg) -> case final ^? ix (i+1) of
+                    Just fun -> applyEvaluate stack fun arg
+                    Nothing  -> throwingWithCause _MachineError (MissingCaseBranch i) Nothing
+                Just _ -> throwingWithCause _MachineError NonTagScrutinized Nothing
+                Nothing -> throwingWithCause _MachineError MissingCaseScrutinee Nothing
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is builtin application

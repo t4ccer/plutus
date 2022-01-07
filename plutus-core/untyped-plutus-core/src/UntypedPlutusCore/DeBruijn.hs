@@ -86,6 +86,8 @@ deBruijnTermWithM h = go
        Force ann t -> Force ann <$> go t
        Prod ann es -> Prod ann <$> traverse go es
        Proj ann i p -> Proj ann i <$> go p
+       Tag ann i p -> Tag ann i <$> go p
+       Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
        -- boring non-recursive cases
        Constant ann con -> pure $ Constant ann con
        Builtin ann bn -> pure $ Builtin ann bn
@@ -114,6 +116,8 @@ unDeBruijnTermWithM h = go
         Force ann t -> Force ann <$> go t
         Prod ann es -> Prod ann <$> traverse go es
         Proj ann i p -> Proj ann i <$> go p
+        Tag ann i p -> Tag ann i <$> go p
+        Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
         -- boring non-recursive cases
         Constant ann con -> pure $ Constant ann con
         Builtin ann bn -> pure $ Builtin ann bn

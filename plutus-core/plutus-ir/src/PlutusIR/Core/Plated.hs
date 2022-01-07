@@ -122,6 +122,8 @@ termSubkinds f term0 = case term0 of
     Builtin{}       -> pure term0
     Prod{}          -> pure term0
     Proj{}          -> pure term0
+    Tag{}           -> pure term0
+    Case{}          -> pure term0
 
 {-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term', including those within 'Binding's.
@@ -136,6 +138,8 @@ termSubterms f = \case
     Unwrap x t        -> Unwrap x <$> f t
     Prod x es         -> Prod x <$> traverse f es
     Proj x i p        -> Proj x i <$> f p
+    Tag x ty i t      -> Tag x ty i <$> f t
+    Case x arg cs     -> Case x <$> f arg <*> traverse f cs
     e@Error {}        -> pure e
     v@Var {}          -> pure v
     c@Constant {}     -> pure c
@@ -154,6 +158,7 @@ termSubtypes f = \case
     TyInst x t ty     -> TyInst x t <$> f ty
     IWrap x ty1 ty2 t -> IWrap x <$> f ty1 <*> f ty2 <*> pure t
     Error x ty        -> Error x <$> f ty
+    Tag x ty i t      -> Tag x <$> f ty <*> pure i <*> pure t
     t@TyAbs {}        -> pure t
     a@Apply {}        -> pure a
     u@Unwrap {}       -> pure u
@@ -162,6 +167,7 @@ termSubtypes f = \case
     b@Builtin {}      -> pure b
     p@Prod {}         -> pure p
     p@Proj {}         -> pure p
+    p@Case {}         -> pure p
 
 -- | Get all the transitive child 'Type's of the given 'Term'.
 termSubtypesDeep :: Fold (Term tyname name uni fun ann) (Type tyname uni ann)
@@ -193,6 +199,8 @@ termUniques f = \case
     u@Unwrap{}        -> pure u
     p@Prod {}         -> pure p
     p@Proj {}         -> pure p
+    p@Tag {}          -> pure p
+    p@Case {}         -> pure p
 
 -- | Get all the transitive child 'Unique's of the given 'Term' (including the type-level ones).
 termUniquesDeep

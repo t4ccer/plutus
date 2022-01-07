@@ -38,34 +38,18 @@
               )
             )
           )
-          (lam
-            a_i0
-            (type)
-            (all
-              out_Maybe_i0
-              (type)
-              (fun
-                (fun (prod ) out_Maybe_i1)
-                (fun (fun (prod a_i2) out_Maybe_i1) out_Maybe_i1)
-              )
-            )
-          )
+          (lam a_i0 (type) (sum (prod ) (prod a_i1)))
         }
         (abs
           a_i0
           (type)
-          (abs
-            out_Maybe_i0
-            (type)
-            (lam
-              case_Nothing_i0
-              (fun (prod ) out_Maybe_i2)
-              (lam
-                case_Just_i0
-                (fun (prod a_i4) out_Maybe_i3)
-                [ case_Nothing_i2 (prod ) ]
-              )
-            )
+          (tag
+            0
+            [
+              (lam Maybe_i0 (fun (type) (type)) (sum (prod ) (prod a_i2)))
+              (lam a_i0 (type) (sum (prod ) (prod a_i1)))
+            ]
+            (prod )
           )
         )
       ]
@@ -75,18 +59,13 @@
         (lam
           arg_0_i0
           a_i2
-          (abs
-            out_Maybe_i0
-            (type)
-            (lam
-              case_Nothing_i0
-              (fun (prod ) out_Maybe_i2)
-              (lam
-                case_Just_i0
-                (fun (prod a_i5) out_Maybe_i3)
-                [ case_Just_i1 (prod arg_0_i4) ]
-              )
-            )
+          (tag
+            1
+            [
+              (lam Maybe_i0 (fun (type) (type)) (sum (prod ) (prod a_i3)))
+              (lam a_i0 (type) (sum (prod ) (prod a_i1)))
+            ]
+            (prod arg_0_i1)
           )
         )
       )
@@ -96,22 +75,20 @@
       (type)
       (lam
         x_i0
-        [
+        [ (lam a_i0 (type) (sum (prod ) (prod a_i1))) a_i2 ]
+        (abs
+          out_Maybe_i0
+          (type)
           (lam
-            a_i0
-            (type)
-            (all
-              out_Maybe_i0
-              (type)
-              (fun
-                (fun (prod ) out_Maybe_i1)
-                (fun (fun (prod a_i2) out_Maybe_i1) out_Maybe_i1)
-              )
+            case_Nothing_i0
+            (fun (prod ) out_Maybe_i2)
+            (lam
+              case_Just_i0
+              (fun (prod a_i5) out_Maybe_i3)
+              (case x_i4 case_Nothing_i2 case_Just_i1)
             )
           )
-          a_i2
-        ]
-        x_i1
+        )
       )
     )
   ]

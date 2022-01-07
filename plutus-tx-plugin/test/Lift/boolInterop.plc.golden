@@ -1,6 +1,1 @@
-(delay
-  (lam
-    case_GHC_Types_True_0
-    (lam case_GHC_Types_False_1 [ case_GHC_Types_True_0 (prod ) ])
-  )
-)
+(tag 0 (prod ))

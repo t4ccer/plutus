@@ -73,6 +73,7 @@ data Type tyname uni ann
     | TyLam ann tyname (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
     | TyProd ann [Type tyname uni ann]
+    | TySum ann [Type tyname uni ann]
     deriving (Show, Functor, Generic, NFData)
 
 data Term tyname name uni fun ann
@@ -88,6 +89,8 @@ data Term tyname name uni fun ann
     | Error ann (Type tyname uni ann)
     | Prod ann [Term tyname name uni fun ann]
     | Proj ann Int (Term tyname name uni fun ann)
+    | Tag ann (Type tyname uni ann) Int (Term tyname name uni fun ann)
+    | Case ann (Term tyname name uni fun ann) [Term tyname name uni fun ann]
     deriving (Show, Functor, Generic, NFData)
 
 -- | Version of Plutus Core to be used for the program.
@@ -172,6 +175,7 @@ typeAnn (TyBuiltin ann _   ) = ann
 typeAnn (TyLam ann _ _ _   ) = ann
 typeAnn (TyApp ann _ _     ) = ann
 typeAnn (TyProd ann _      ) = ann
+typeAnn (TySum ann _       ) = ann
 
 termAnn :: Term tyname name uni fun ann -> ann
 termAnn (Var ann _       ) = ann
@@ -186,6 +190,8 @@ termAnn (Error ann _     ) = ann
 termAnn (LamAbs ann _ _ _) = ann
 termAnn (Prod ann _      ) = ann
 termAnn (Proj ann _ _    ) = ann
+termAnn (Tag ann _ _ _   ) = ann
+termAnn (Case ann _ _    ) = ann
 
 -- | Map a function over the set of built-in functions.
 mapFun :: (fun -> fun') -> Term tyname name uni fun ann -> Term tyname name uni fun' ann
@@ -202,6 +208,8 @@ mapFun f = go where
     go (Builtin ann fun)          = Builtin ann (f fun)
     go (Prod ann args)            = Prod ann (map go args)
     go (Proj ann i arg)           = Proj ann i (go arg)
+    go (Tag ann ty i arg)         = Tag ann ty i (go arg)
+    go (Case ann arg cs)          = Case ann (go arg) (map go cs)
 
 -- | This is a wrapper to mark the place where the binder is introduced (i.e. LamAbs/TyAbs)
 -- and not where it is actually used (TyVar/Var..).
