@@ -31,6 +31,7 @@ import Data.Word (Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
+import GHC.Natural
 import Numeric.Natural
 import Universe
 
@@ -334,13 +335,20 @@ instance Flat Special
 -- See Note [Index (Word64) (de)serialized through Natural]
 instance Flat Index where
     -- encode from word64 to natural
-    encode = encode @Natural . fromIntegral
+    -- the fromintegral is still needed to go from Index (Word64) to Word
+    encode = encode . wordToNatural . fromIntegral @Index @Word
     -- decode from natural to word64
-    decode = fromIntegral @Natural <$> decode
+    decode = do
+        n <- decode @Natural
+        case naturalToWordMaybe n of
+            Nothing -> fail "does not fit word"
+            -- the fromintegral is still needed to go from Word to Index (Word64)
+            Just w  -> pure $ fromIntegral @Word @Index w
     -- to be exact, we must not let this be generically derived,
     -- because the `gsize` would derive the size of the underlying Word64,
     -- whereas we want the size of Natural
-    size = sNatural . fromIntegral
+    -- the fromintegral is still needed to go from Index (Word64) to Word
+    size = sNatural . wordToNatural . fromIntegral @Index @Word
 
 deriving newtype instance Flat DeBruijn -- via index
 deriving newtype instance Flat TyDeBruijn -- via debruijn
