@@ -13,7 +13,7 @@ library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 
 
 ## At present, times in the becnhmarking data are typically of the order of
-## 10^(-6) seconds. We scale these up to milliseconds because the resulting
+## 10^(-6) seconds. WE SCALE THESE UP TO MILLISECONDS because the resulting
 ## numbers are much easier to work with interactively.  For use in the Plutus
 ## Core cost model we scale times up by a further factor of 10^6 (to
 ## picoseconds) because then everything fits into integral values with little
@@ -161,12 +161,12 @@ adjustModel <- function (m, fname) {
     ## prevent us from getting models which predict negative costs.
 
     ## See also https://stackoverflow.com/questions/27244898/force-certain-parameters-to-have-positive-coefficients-in-lm
-
+    adjustment <- 0.001  ## ns
     ensurePositive <- function(x, name) {
         if (x<0) {
-            cat (sprintf("** WARNING: a negative coefficient %f for %s occurred in the model for %s. This has been adjusted to 1000.\n",
-                         x, name, fname))
-            1000
+            cat (sprintf("** WARNING: a negative coefficient %f for %s occurred in the model for %s. This has been adjusted to %s.\n",
+                         x, name, fname, adjustment))
+            adjustment
         }
         else x
     }
