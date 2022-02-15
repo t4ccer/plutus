@@ -47,7 +47,7 @@ discard.upper.outliers <- function(fr,name) {
     if (new.nrows <= 0.9 * nrows) {
         cat (sprintf ("*** WARNING: %d outliers have been discarded from %d datapoints for %s\n", nrows-new.nrows, nrows, name ));
     }
-    new.fr
+    return (new.fr)
 }
 
 arity <- function(name) {
@@ -132,7 +132,7 @@ get.bench.data <- function(path) {
         a <- str_match(name, benchname)
         r <- as.data.frame(a[,-1]) # Discard the first column (which is the entire match)
         names(r) <- c("BuiltinName", numbercols)
-        r
+        return (r)
     }
 
     numbers <- benchmark_name_to_numbers(dat$Name)
@@ -175,7 +175,7 @@ adjustModel <- function (m, fname) {
     ## This will invalidate some of the information in the model (such as the
     ## residuals), but we don't use that anyway.  Maybe we should just return the
     ## vector of coefficients?
-    m
+    return (m)
 }
 
 
