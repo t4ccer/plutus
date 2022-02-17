@@ -1,6 +1,222 @@
-stupidZero:14:50:
-   |
-14 |         [{[match_Nat n] Nat} (lam p (prod) Zero) (lam p (prod Nat) [stupidZero (proj 0 p)])]))
-   |                                                  ^
-unexpected '('
-expecting ']'
+(program
+  1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            Nat_i0
+            (type)
+            (lam
+              Zero_i0
+              Nat_i2
+              (lam
+                Suc_i0
+                (fun Nat_i3 Nat_i3)
+                (lam
+                  match_Nat_i0
+                  (fun
+                    Nat_i4
+                    (all
+                      out_Nat_i0
+                      (type)
+                      (fun
+                        (fun (prod ) out_Nat_i1)
+                        (fun (fun (prod Nat_i5) out_Nat_i1) out_Nat_i1)
+                      )
+                    )
+                  )
+                  [
+                    (lam
+                      stupidZero_i0
+                      (fun Nat_i5 Nat_i5)
+                      [
+                        (lam three_i0 Nat_i6 [ stupidZero_i2 three_i1 ])
+                        [ Suc_i3 [ Suc_i3 [ Suc_i3 Zero_i4 ] ] ]
+                      ]
+                    )
+                    [
+                      (lam arg_0_i0 (fun Nat_i5 Nat_i5) arg_0_i1)
+                      [
+                        (lam
+                          s_i0
+                          [
+                            (lam
+                              a_i0
+                              (type)
+                              (ifix
+                                (lam
+                                  self_i0
+                                  (fun (type) (type))
+                                  (lam a_i0 (type) (fun [ self_i2 a_i1 ] a_i1))
+                                )
+                                a_i1
+                              )
+                            )
+                            (fun Nat_i5 Nat_i5)
+                          ]
+                          [ (unwrap s_i1) s_i1 ]
+                        )
+                        (iwrap
+                          (lam
+                            self_i0
+                            (fun (type) (type))
+                            (lam a_i0 (type) (fun [ self_i2 a_i1 ] a_i1))
+                          )
+                          (fun Nat_i4 Nat_i4)
+                          (lam
+                            s_i0
+                            [
+                              (lam
+                                a_i0
+                                (type)
+                                (ifix
+                                  (lam
+                                    self_i0
+                                    (fun (type) (type))
+                                    (lam
+                                      a_i0 (type) (fun [ self_i2 a_i1 ] a_i1)
+                                    )
+                                  )
+                                  a_i1
+                                )
+                              )
+                              (fun Nat_i5 Nat_i5)
+                            ]
+                            (lam
+                              x_i0
+                              Nat_i6
+                              [
+                                (lam
+                                  stupidZero_i0
+                                  (fun Nat_i7 Nat_i7)
+                                  [
+                                    [
+                                      { [ match_Nat_i4 x_i2 ] Nat_i7 }
+                                      (lam p_i0 (prod ) Zero_i7)
+                                    ]
+                                    (lam
+                                      p_i0
+                                      (prod Nat_i8)
+                                      [ stupidZero_i2 (proj 0 p_i1) ]
+                                    )
+                                  ]
+                                )
+                                [ (unwrap s_i2) s_i2 ]
+                              ]
+                            )
+                          )
+                        )
+                      ]
+                    ]
+                  ]
+                )
+              )
+            )
+          )
+          (ifix
+            (lam
+              rec_i0
+              (fun (fun (type) (type)) (type))
+              (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
+            )
+            (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+          )
+        }
+        (iwrap
+          (lam
+            rec_i0
+            (fun (fun (type) (type)) (type))
+            (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
+          )
+          (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+          (tag
+            0
+            [
+              (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+              (ifix
+                (lam
+                  rec_i0
+                  (fun (fun (type) (type)) (type))
+                  (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
+                )
+                (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+              )
+            ]
+            (prod )
+          )
+        )
+      ]
+      (lam
+        arg_0_i0
+        (ifix
+          (lam
+            rec_i0
+            (fun (fun (type) (type)) (type))
+            (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
+          )
+          (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+        )
+        (iwrap
+          (lam
+            rec_i0
+            (fun (fun (type) (type)) (type))
+            (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
+          )
+          (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+          (tag
+            1
+            [
+              (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+              (ifix
+                (lam
+                  rec_i0
+                  (fun (fun (type) (type)) (type))
+                  (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
+                )
+                (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+              )
+            ]
+            (prod arg_0_i1)
+          )
+        )
+      )
+    ]
+    (lam
+      x_i0
+      (ifix
+        (lam
+          rec_i0
+          (fun (fun (type) (type)) (type))
+          (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
+        )
+        (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+      )
+      (abs
+        out_Nat_i0
+        (type)
+        (lam
+          case_Zero_i0
+          (fun (prod ) out_Nat_i2)
+          (lam
+            case_Suc_i0
+            (fun
+              (prod
+                (ifix
+                  (lam
+                    rec_i0
+                    (fun (fun (type) (type)) (type))
+                    (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
+                  )
+                  (lam Nat_i0 (type) (sum (prod ) (prod Nat_i1)))
+                )
+              )
+              out_Nat_i3
+            )
+            (case (unwrap x_i4) case_Zero_i2 case_Suc_i1)
+          )
+        )
+      )
+    )
+  ]
+)

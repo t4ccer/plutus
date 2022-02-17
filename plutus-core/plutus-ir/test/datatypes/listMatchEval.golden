@@ -1,6 +1,1 @@
-listMatchEval:19:18:
-   |
-19 |     (lam p (prod (all a (type) (fun a a)) [List (all a (type) (fun a a))]) (proj 0 p))
-   |                  ^
-unexpected '('
-expecting '(' or ')'
+(delay (lam x_0 x_0))
