@@ -90,6 +90,7 @@
           (hsPkgs."time" or (errorHandler.buildDepError "time"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."unordered-containers" or (errorHandler.buildDepError "unordered-containers"))
+          (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
           (hsPkgs."word-array" or (errorHandler.buildDepError "word-array"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
@@ -263,6 +264,7 @@
           "PlutusIR/Transform/LetMerge"
           "PlutusIR/Transform/RecSplit"
           "PlutusIR/Transform/NonStrict"
+          "PlutusIR/Transform/Project"
           "PlutusIR/Transform/Rename"
           "PlutusIR/Transform/Substitute"
           "PlutusIR/Transform/ThunkRecursions"
