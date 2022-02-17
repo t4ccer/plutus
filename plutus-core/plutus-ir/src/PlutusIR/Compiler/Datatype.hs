@@ -365,6 +365,12 @@ mkConstructor dty d@(Datatype ann _ tvs _ constrs) index = do
             Tag ann unrolled index (Prod ann (fmap (PIR.mkVar ann) argsAndTypes))
     pure $ fmap (\a -> DatatypeComponent Constructor a) constr
 
+etaExpand :: MonadQuote m => a -> Term TyName Name uni fun a -> Type TyName uni a -> m (Term TyName Name uni fun a)
+etaExpand ann t (TyFun _ dom _) = do
+    e <- freshName "e"
+    pure $ LamAbs ann e dom $ Apply ann t (Var ann e)
+etaExpand _ _ _ = error "can't eta expand a non-function"
+
 -- Destructors
 
 -- See note [Scott encoding of datatypes]
@@ -391,6 +397,12 @@ mkDestructor dty d@(Datatype ann _ tvs _ constrs) = do
           caseArgNames <- for constrs (\c -> safeFreshName $ "case_" <> T.pack (varDeclNameString c))
           pure $ zipWith (VarDecl ann) caseArgNames caseTypes
 
+    -- We're requiring case bodies to be lambdas, but at this point they're
+    -- unknown functions passed into the destructor. So we just eta-expand them.
+    caseBodies <- for casesAndTypes $ \vd -> do
+        let e = PIR.mkVar ann vd
+        etaExpand ann e (_varDeclType vd)
+
     xn <- safeFreshName "x"
     let destr =
             -- /\t_1 .. t_n
@@ -403,7 +415,7 @@ mkDestructor dty d@(Datatype ann _ tvs _ constrs) = do
             PIR.mkIterLamAbs casesAndTypes $
             -- See note [Recursive datatypes]
             -- case (unwrap x) case_1 .. case_j
-            Case ann (unwrap ann dty $ Var ann xn) (fmap (PIR.mkVar ann) casesAndTypes)
+            Case ann (unwrap ann dty $ Var ann xn) caseBodies
     pure $ fmap (\a -> DatatypeComponent Destructor a) destr
 
 -- See note [Scott encoding of datatypes]

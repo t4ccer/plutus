@@ -7,20 +7,20 @@
       (case
         ds_i2
         (lam
-          p_i0
+          e_i0
           (case
             ds_i2
             (lam
-              p_i0
+              e_i0
               [
                 (lam arg_0_i0 (tag 0 (prod arg_0_i1)))
-                [ [ (builtin addInteger) (proj 0 p_i2) ] (proj 0 p_i1) ]
+                [ [ (builtin addInteger) (proj 0 e_i2) ] (proj 0 e_i1) ]
               ]
             )
-            (lam p_i0 (tag 1 (prod )))
+            (lam e_i0 (tag 1 (prod )))
           )
         )
-        (lam p_i0 (tag 1 (prod )))
+        (lam e_i0 (tag 1 (prod )))
       )
     )
   )

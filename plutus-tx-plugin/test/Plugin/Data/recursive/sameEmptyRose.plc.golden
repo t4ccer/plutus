@@ -157,7 +157,8 @@
                           x_i0
                           (delay
                             (lam
-                              case_EmptyRose_i0 (case x_i2 case_EmptyRose_i1)
+                              case_EmptyRose_i0
+                              (case x_i2 (lam e_i0 [ case_EmptyRose_i2 e_i1 ]))
                             )
                           )
                         )
@@ -177,7 +178,14 @@
             (delay
               (lam
                 case_Nil_i0
-                (lam case_Cons_i0 (case x_i3 case_Nil_i2 case_Cons_i1))
+                (lam
+                  case_Cons_i0
+                  (case
+                    x_i3
+                    (lam e_i0 [ case_Nil_i3 e_i1 ])
+                    (lam e_i0 [ case_Cons_i2 e_i1 ])
+                  )
+                )
               )
             )
           )

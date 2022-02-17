@@ -39,8 +39,8 @@
                 case_Plugin_Data_Spec_Poly2_i0
                 (case
                   x_i3
-                  case_Plugin_Data_Spec_Poly1_i2
-                  case_Plugin_Data_Spec_Poly2_i1
+                  (lam e_i0 [ case_Plugin_Data_Spec_Poly1_i3 e_i1 ])
+                  (lam e_i0 [ case_Plugin_Data_Spec_Poly2_i2 e_i1 ])
                 )
               )
             )

@@ -38,9 +38,9 @@
               case_Plugin_Data_Spec_Mono3_i0
               (case
                 x_i4
-                case_Plugin_Data_Spec_Mono1_i3
-                case_Plugin_Data_Spec_Mono2_i2
-                case_Plugin_Data_Spec_Mono3_i1
+                (lam e_i0 [ case_Plugin_Data_Spec_Mono1_i4 e_i1 ])
+                (lam e_i0 [ case_Plugin_Data_Spec_Mono2_i3 e_i1 ])
+                (lam e_i0 [ case_Plugin_Data_Spec_Mono3_i2 e_i1 ])
               )
             )
           )

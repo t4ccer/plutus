@@ -78,10 +78,10 @@ import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.Semigroup (stimes)
 import Data.Text (Text)
-import Data.Word
-import Data.Word64Array.Word8 hiding (Index, toList)
 import Data.Vector qualified as V
 import Data.Vector.Mutable qualified as MV
+import Data.Word
+import Data.Word64Array.Word8 hiding (Index, toList)
 import Prettyprinter
 import Universe
 
@@ -526,7 +526,7 @@ data Context uni fun s
     | FrameProd !(CekValEnv uni fun) {-# UNPACK #-} !(Accumulator (Term NamedDeBruijn uni fun ()) (CekValue uni fun) s) !(Context uni fun s)
     | FrameProj {-# UNPACK #-} !Int !(Context uni fun s)
     | FrameTag {-# UNPACK #-} !Int !(Context uni fun s)
-    | FrameCases !(CekValEnv uni fun) {-# UNPACK #-} !(Accumulator (Term NamedDeBruijn uni fun ()) (CekValue uni fun) s) !(Context uni fun s)
+    | FrameCases !(CekValEnv uni fun) ![Term NamedDeBruijn uni fun ()] !(Context uni fun s)
     | NoFrame
     --deriving (Show)
 
@@ -660,10 +660,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         computeCek unbudgetedSteps' (FrameTag i ctx) env t
     computeCek !unbudgetedSteps !ctx !env (Case _ arg cs) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
-        acc <- CekM $ newAccumulator (arg:cs)
-        case acc of
-            Left res        -> returnCek unbudgetedSteps ctx $ VProd res
-            Right (t, acc') -> computeCek unbudgetedSteps' (FrameCases env acc' ctx) env t
+        computeCek unbudgetedSteps' (FrameCases env cs ctx) env arg
 
     {- | The returning phase of the CEK machine.
     Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -705,16 +702,12 @@ enterComputeCek = computeCek (toWordArray 0) where
             Nothing -> throwingWithCause _MachineError (ProductIndexOutOfBoundsMachineError i) Nothing
         _ -> throwingWithCause _MachineError NonProductIndexedMachineError Nothing
     returnCek !unbudgetedSteps (FrameTag i ctx) e = returnCek unbudgetedSteps ctx (VTag i e)
-    returnCek !unbudgetedSteps (FrameCases env acc ctx) e = do
-        r <- CekM $ stepAccumulator acc e
-        case r of
-            Right (next, acc') -> computeCek unbudgetedSteps (FrameCases env acc' ctx) env next
-            Left done -> case done ^? ix 0 of
-                Just (VTag i arg) -> case done ^? ix (i+1) of
-                    Just fun -> applyEvaluate unbudgetedSteps ctx fun arg
-                    Nothing  -> throwingWithCause _MachineError (MissingCaseBranch i) Nothing
-                Just _ -> throwingWithCause _MachineError NonTagScrutinized Nothing
-                Nothing -> throwingWithCause _MachineError MissingCaseScrutinee Nothing
+    returnCek !unbudgetedSteps (FrameCases env cs ctx) e = case e of
+        (VTag i arg) -> case cs ^? ix i of
+            Just (LamAbs _ _ body) -> computeCek unbudgetedSteps ctx (Env.cons arg env) body
+            Just t                 -> throwingWithCause _MachineError (MissingCaseBranch i) (Just t)
+            Nothing                -> throwingWithCause _MachineError (MissingCaseBranch i) Nothing
+        _ -> throwingWithCause _MachineError NonTagScrutinized Nothing
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;

@@ -32,7 +32,11 @@
             case_GHC_Types_Nil_i0
             (lam
               case_GHC_Types_Cons_i0
-              (case x_i3 case_GHC_Types_Nil_i2 case_GHC_Types_Cons_i1)
+              (case
+                x_i3
+                (lam e_i0 [ case_GHC_Types_Nil_i3 e_i1 ])
+                (lam e_i0 [ case_GHC_Types_Cons_i2 e_i1 ])
+              )
             )
           )
         )

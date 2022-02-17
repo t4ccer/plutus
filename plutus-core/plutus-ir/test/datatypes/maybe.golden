@@ -85,7 +85,11 @@
             (lam
               case_Just_i0
               (fun (prod a_i5) out_Maybe_i3)
-              (case x_i4 case_Nothing_i2 case_Just_i1)
+              (case
+                x_i4
+                (lam e_i0 (prod ) [ case_Nothing_i3 e_i1 ])
+                (lam e_i0 (prod a_i6) [ case_Just_i2 e_i1 ])
+              )
             )
           )
         )
