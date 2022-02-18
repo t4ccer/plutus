@@ -1,5 +1,5 @@
 {
-    "cekStartupCost" : {"exBudgetCPU":     100, "exBudgetMemory": 100},
+    "cekStartupCost" : {"exBudgetCPU":   1465906, "exBudgetMemory": 100},
     "cekVarCost"     : {"exBudgetCPU":   35000, "exBudgetMemory": 100},
     "cekConstCost"   : {"exBudgetCPU":   35000, "exBudgetMemory": 100},
     "cekLamCost"     : {"exBudgetCPU":   35000, "exBudgetMemory": 100},
