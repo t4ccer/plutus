@@ -39,10 +39,10 @@ infixr 9 `TypeSchemeArrow`
 -- E.g. @Text -> Bool -> Integer@ is encoded as @TypeScheme val [Text, Bool] Integer@.
 data TypeScheme val (args :: [GHC.Type]) res where
     TypeSchemeResult
-        :: KnownType val res
+        :: (KnownTypeAst (UniOf val) res, MakeKnown val res)
         => TypeScheme val '[] res
     TypeSchemeArrow
-        :: KnownType val arg
+        :: (KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg)
         => TypeScheme val args res -> TypeScheme val (arg ': args) res
     TypeSchemeAll
         :: (KnownSymbol text, KnownNat uniq, KnownKind kind)

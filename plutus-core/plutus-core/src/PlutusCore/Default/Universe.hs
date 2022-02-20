@@ -197,21 +197,33 @@ I.e. @geq@ does not partially evaluate for some reason. Maybe it does at a later
 So for now we do the simplest thing and just write @DefaultUni `Contains` Y@.
 -}
 
--- See Note [Constraints of KnownTypeIn instances].
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Integer
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term BS.ByteString
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Text.Text
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term ()
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Bool
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Data
+-- See Note [Constraints of MakeKnownIn instances].
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Integer
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term BS.ByteString
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Text.Text
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term ()
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Bool
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Data
 instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
-    KnownTypeIn DefaultUni term [a]
+    MakeKnownIn DefaultUni term [a]
 instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
-    KnownTypeIn DefaultUni term (a, b)
+    MakeKnownIn DefaultUni term (a, b)
 
--- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
--- (you'll also need to add a 'KnownTypeAst' instance as well).
-instance TestTypesFromTheUniverseAreAllKnown DefaultUni
+-- See Note [Constraints of ReadKnownIn instances].
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Integer
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term BS.ByteString
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Text.Text
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term ()
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Bool
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Data
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
+    ReadKnownIn DefaultUni term [a]
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
+    ReadKnownIn DefaultUni term (a, b)
+
+-- -- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
+-- -- (you'll also need to add a 'KnownTypeAst' instance as well).
+-- instance TestTypesFromTheUniverseAreAllKnown DefaultUni
 
 {- Note [Int as Integer]
 We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when
@@ -225,10 +237,11 @@ instance KnownTypeAst DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
 -- See Note [Int as Integer].
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
     makeKnown emit mayCause = makeKnown emit mayCause . toInteger
     {-# INLINE makeKnown #-}
 
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
     readKnown mayCause term =
         -- See Note [Performance of KnownTypeIn instances].
         -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
