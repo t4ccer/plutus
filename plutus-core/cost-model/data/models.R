@@ -213,18 +213,20 @@ modelFun <- function(path) {
     overhead <- sapply(nops, get.mean.time)
 
     discard.overhead <- function(frame, name) {
-        args.overhead <- overhead[arity(name)]
-        mean.time <- mean(frame$Mean)
-        if (mean.time > args.overhead) {
-            mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x - args.overhead }))
-        }
-        else {
-            cat (sprintf ("* NOTE: mean time for %s was less than overhead (%.3f ms < %.3f ms): set to zero\n",
-                          name, mean.time, args.overhead));
-            mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x/10000 }))
-            ## FIXME.  Don't understand this: putting function(x){0} causes a failure when the model is read from R.
-        }
+        return (frame)
     }
+    ##     args.overhead <- overhead[arity(name)]
+    ##     mean.time <- mean(frame$Mean)
+    ##     if (mean.time > args.overhead) {
+    ##         mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x - args.overhead }))
+    ##     }
+    ##     else {
+    ##         cat (sprintf ("* NOTE: mean time for %s was less than overhead (%.3f ms < %.3f ms): set to zero\n",
+    ##                       name, mean.time, args.overhead));
+    ##         mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x/10000 }))
+    ##         ## FIXME.  Don't understand this: putting function(x){0} causes a failure when the model is read from R.
+    ##     }
+    ## }
 
     constantModel <- function (fname) {
         filtered <- data %>%

@@ -142,6 +142,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
 
 -- There seems to be quite a lot of variation in repeated runs of these benchmarks.
 
+-- A benchmark that just loads the unit constant, which is about the minimal
+-- amount of work we can do.  This should give and idea of the cost of starting
+-- the evaluator.
+benchUnit :: Benchmark
+benchUnit =
+    bgroup "Empty" [benchWith nopCostParameters "1" $ mkUnit ]
+
 benchNop1 :: StdGen -> Benchmark
 benchNop1 gen =
     let name = Nop1
@@ -235,4 +242,4 @@ benchNop6 gen =
            ]
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks gen = [benchNop1 gen, benchNop2 gen, benchNop3 gen, benchNop4 gen, benchNop5 gen, benchNop6 gen]
+makeBenchmarks gen = [benchUnit, benchNop1 gen, benchNop2 gen, benchNop3 gen, benchNop4 gen, benchNop5 gen, benchNop6 gen]
