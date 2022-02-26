@@ -80,7 +80,7 @@ newtype BuiltinsRuntime fun val = BuiltinsRuntime
 -- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
 toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
 toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
-    go sch $ \sch' toF' toExF' -> BuiltinRuntime sch' (toF' $ pure f) (toExF' $ exF cost) where
+    go sch $ \sch' toF' toExF' -> (BuiltinRuntime sch' $! (toF' $ pure f)) $! (toExF' $ exF cost) where
         go
             :: TypeScheme val args res
             -> (forall n.
