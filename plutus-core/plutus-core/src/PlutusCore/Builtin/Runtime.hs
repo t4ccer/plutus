@@ -35,11 +35,12 @@ data RuntimeScheme n where
     RuntimeSchemeArrow :: RuntimeScheme n -> RuntimeScheme ('S n)
     RuntimeSchemeAll :: RuntimeScheme n -> RuntimeScheme n
 
-type ReadKnownM = ExceptT (ErrorWithCause ReadKnownError ()) Emitter
+type MakeKnownM = ExceptT (ErrorWithCause ReadKnownError ()) Emitter
+type ReadKnownM = Either (ErrorWithCause ReadKnownError ())
 
 type family ToDenotationType val (n :: Nat) :: GHC.Type where
-    ToDenotationType val 'Z     = ReadKnownM val
-    ToDenotationType val ('S n) = val -> ToDenotationType val n
+    ToDenotationType val 'Z     = MakeKnownM val
+    ToDenotationType val ('S n) = val -> ReadKnownM (ToDenotationType val n)
 
 type family ToCostingType (n :: Nat) :: GHC.Type where
     ToCostingType 'Z     = ExBudget
@@ -77,6 +78,13 @@ newtype BuiltinsRuntime fun val = BuiltinsRuntime
     { unBuiltinRuntime :: Array fun (BuiltinRuntime val)
     }
 
+data UnliftMode
+    = UnliftImmediately
+    | UnliftWhenSaturated
+
+unliftMode :: UnliftMode
+unliftMode = UnliftImmediately
+
 -- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
 toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
 toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
@@ -92,12 +100,16 @@ toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
         go TypeSchemeResult       k =
             k
                 RuntimeSchemeResult
-                (\getRes -> getRes >>= makeKnown (lift . emitM) (Just ()))
+                (\getRes -> liftEither getRes >>= makeKnown (lift . emitM) (Just ()))
                 id
         go (TypeSchemeArrow schB) k =
             go schB $ \sch' toF' toExF' -> k
                 (RuntimeSchemeArrow sch')
-                (\getF x -> toF' $ getF <*> liftEither (readKnown (Just ()) x))
+                (\getF x -> do
+                    let getVal = readKnown (Just ()) x
+                    case unliftMode of
+                        UnliftImmediately   -> getVal <&> \val -> toF' (($ val) <$> getF)
+                        UnliftWhenSaturated -> pure . toF' $ getF <*> getVal)
                 (toExF' .)
         go (TypeSchemeAll _ schK) k = go schK $ k . RuntimeSchemeAll
 

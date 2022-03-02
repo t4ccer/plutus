@@ -697,11 +697,13 @@ enterComputeCek = computeCek (toWordArray 0) where
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            RuntimeSchemeArrow schB -> do
+            RuntimeSchemeArrow schB -> case f arg of
+                Left err  -> throwReadKnownErrorWithCause $ term' <$ err
+                Right app -> do
                     -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                     -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                     -- Maybe we could fuse the two?
-                    let runtime' = BuiltinRuntime schB (f arg) . exF $ toExMemory arg
+                    let runtime' = BuiltinRuntime schB app . exF $ toExMemory arg
                     res <- evalBuiltinApp fun term' env runtime'
                     returnCek unbudgetedSteps ctx res
             _ ->
