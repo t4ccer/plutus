@@ -24,6 +24,7 @@ module Plutus.V1.Ledger.Tx(
     mintScripts,
     signatures,
     datumWitnesses,
+    metadata,
     redeemers,
     lookupSignature,
     lookupDatum,
@@ -65,6 +66,7 @@ module Plutus.V1.Ledger.Tx(
 
 import Codec.CBOR.Write qualified as Write
 import Codec.Serialise.Class (Serialise, encode)
+import Control.Applicative ((<|>))
 import Control.DeepSeq (NFData)
 import Control.Lens
 import Data.Aeson (FromJSON, FromJSONKey (..), ToJSON, ToJSONKey (..))
@@ -78,6 +80,7 @@ import Prettyprinter
 
 import PlutusTx qualified
 import PlutusTx.Bool qualified as PlutusTx
+import PlutusTx.Builtins (BuiltinByteString)
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Lattice
 
@@ -133,8 +136,10 @@ data Tx = Tx {
     -- ^ Signatures of this transaction.
     txRedeemers   :: Redeemers,
     -- ^ Redeemers of the minting scripts.
-    txData        :: Map DatumHash Datum
+    txData        :: Map DatumHash Datum,
     -- ^ Datum objects recorded on this transaction.
+    txMetadata    :: Maybe BuiltinByteString
+    -- ^ Metadata attached to this transaction
     } deriving stock (Show, Eq, Generic)
       deriving anyclass (ToJSON, FromJSON, Serialise, NFData)
 
@@ -149,11 +154,12 @@ instance Semigroup Tx where
         txMintScripts = txMintScripts tx1 <> txMintScripts tx2,
         txSignatures = txSignatures tx1 <> txSignatures tx2,
         txRedeemers = txRedeemers tx1 <> txRedeemers tx2,
-        txData = txData tx1 <> txData tx2
+        txData = txData tx1 <> txData tx2,
+        txMetadata = txMetadata tx1 <|> txMetadata tx2
         }
 
 instance Monoid Tx where
-    mempty = Tx mempty mempty mempty mempty mempty top mempty mempty mempty mempty
+    mempty = Tx mempty mempty mempty mempty mempty top mempty mempty mempty mempty Nothing
 
 instance BA.ByteArrayAccess Tx where
     length        = BA.length . Write.toStrictByteString . encode
@@ -212,6 +218,11 @@ datumWitnesses :: Lens' Tx (Map DatumHash Datum)
 datumWitnesses = lens g s where
     g = txData
     s tx dat = tx { txData = dat }
+
+metadata :: Lens' Tx (Maybe BuiltinByteString)
+metadata = lens g s where
+    g = txMetadata
+    s tx meta = tx { txMetadata = meta }
 
 lookupSignature :: PubKey -> Tx -> Maybe Signature
 lookupSignature s Tx{txSignatures} = Map.lookup s txSignatures
